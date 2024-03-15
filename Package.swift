@@ -1,14 +1,12 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.7
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "MarkupEditor",
-    platforms: [
-        .macCatalyst(.v15),
-        .iOS(.v15)
-    ],
+    defaultLocalization: "en",
+    platforms: [.iOS("16.0")],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -31,13 +29,6 @@ let package = Package(
             name: "BasicTests",
             dependencies: ["MarkupEditor"],
             path: "MarkupEditorTests/BasicTests"),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
-
-/** Seems to cause problems, but will leave here in case it can be enabled
- for target in package.targets {
-    var settings = target.swiftSettings ?? []
-    settings.append(.enableExperimentalFeature("StrictConcurrency"))
-    target.swiftSettings = settings
- }
- */
