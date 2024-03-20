@@ -39,11 +39,11 @@ public class MarkupToolbarUIView: UIView {
         super.init(frame: frame)
     }
     
-    public init(_ style: ToolbarStyle.Style? = nil, contents: ToolbarContents? = nil, markupDelegate: MarkupDelegate? = nil, withKeyboardButton: Bool = false) {
+    public init(_ style: ToolbarStyle.Style? = nil, contents: ToolbarContents? = nil, markupDelegate: MarkupDelegate? = nil, withKeyboardButton: Bool = false, backgroundColor: Color) {
         super.init(frame: CGRect.zero)
         self.markupDelegate = markupDelegate
         autoresizingMask = .flexibleHeight  // Needed for the intrinsicContentSize change to work
-        markupToolbar = MarkupToolbar(style, contents: contents, markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton)
+        markupToolbar = MarkupToolbar(style, contents: contents, markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor)
         let markupToolbarHC = UIHostingController(rootView: markupToolbar)
         addSubview(markupToolbarHC.view)
         markupToolbarHC.view.translatesAutoresizingMaskIntoConstraints = false
@@ -74,9 +74,9 @@ public class MarkupToolbarUIView: UIView {
     }
     
     /// Return a MarkupToolbarUIView that is compact, containing the current shared ToolbarContents, but makes sure keyboardButton is present.
-    public static func inputAccessory(markupDelegate: MarkupDelegate? = nil) -> MarkupToolbarUIView {
+    public static func inputAccessory(markupDelegate: MarkupDelegate? = nil, withKeyboardButton: Bool = false, backgroundColor: Color) -> MarkupToolbarUIView {
         let contents = ToolbarContents.from(ToolbarContents.shared)
-        let toolbar = MarkupToolbarUIView(.compact, contents: contents, markupDelegate: markupDelegate, withKeyboardButton: true).makeManaged()
+        let toolbar = MarkupToolbarUIView(.compact, contents: contents, markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor).makeManaged()
         toolbar.translatesAutoresizingMaskIntoConstraints = false
         toolbar.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         return toolbar

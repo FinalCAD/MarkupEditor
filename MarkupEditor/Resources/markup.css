@@ -2,6 +2,15 @@ body {
     font-family: -apple-system;
     font: -apple-system-body;
     caret-color: red;   /* Helps with debugging since should not appear */
+    color: #172134;
+    background-color: #F4F6F8;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #FFFFFF;
+        background-color: #172134;
+    }
 }
 
 #editor {
