@@ -13,7 +13,7 @@ public class ToolbarStyle: ObservableObject {
     static let labeled = ToolbarStyle(.labeled)
     
     var style: Style
-    
+
     public enum Style {
         case compact
         case labeled
@@ -29,7 +29,7 @@ public class ToolbarStyle: ObservableObject {
             if UIDevice.current.userInterfaceIdiom == .mac {
                 return 30
             } else {
-                return 40
+                return 48
             }
         case .labeled:
             return 48

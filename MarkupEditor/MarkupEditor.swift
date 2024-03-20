@@ -29,6 +29,8 @@ public struct MarkupEditor {
             toolbarContents.leftToolbar = leftToolbar != nil
         }
     }
+    /// Override current toolbar, allow to easily use our own toolbar
+    public static var overrideToolbar: AnyView?
     public static var rightToolbar: AnyView? {
         didSet {
             toolbarContents.rightToolbar = rightToolbar != nil

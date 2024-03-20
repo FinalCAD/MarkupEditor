@@ -7,6 +7,7 @@
 
 import WebKit
 import Combine
+import SwiftUI
 
 /// MarkupEditorUIView is a UIKit view that holds a MarkupWKWebView and (optionally) a MarkupToolbarUIView.
 ///
@@ -21,7 +22,7 @@ import Combine
 public class MarkupEditorUIView: UIView, MarkupDelegate {
     private var toolbar: MarkupToolbarUIView!
     private var toolbarHeightConstraint: NSLayoutConstraint!
-    private var webView: MarkupWKWebView!
+    public var webView: MarkupWKWebView!
     /// The MarkupCoordinator deals with the interaction with the MarkupWKWebView
     private var coordinator: MarkupCoordinator!
     
@@ -51,9 +52,12 @@ public class MarkupEditorUIView: UIView, MarkupDelegate {
         placeholder: String? = nil,
         selectAfterLoad: Bool = true,
         resourcesUrl: URL? = nil,
-        id: String? = nil) {
+        id: String? = nil,
+        withKeyboardButton: Bool = false,
+        backgroundColor: Color,
+        isScrollEnabled: Bool = false) {
             super.init(frame: CGRect.zero)
-            webView = MarkupWKWebView(html: html, placeholder: placeholder, selectAfterLoad: selectAfterLoad, resourcesUrl: resourcesUrl, id: "Document", markupDelegate: markupDelegate ?? self, configuration: configuration)
+            webView = MarkupWKWebView(html: html, placeholder: placeholder, selectAfterLoad: selectAfterLoad, resourcesUrl: resourcesUrl, id: "Document", markupDelegate: markupDelegate ?? self, configuration: configuration, backgroundColor: backgroundColor)
             // The coordinator acts as the WKScriptMessageHandler and will receive callbacks
             // from markup.js using window.webkit.messageHandlers.markup.postMessage(<message>)
             coordinator = MarkupCoordinator(markupDelegate: markupDelegate, webView: webView)
@@ -70,9 +74,10 @@ public class MarkupEditorUIView: UIView, MarkupDelegate {
             webView.uiDelegate = wkUIDelegate
             webView.userScripts = userScripts
             webView.translatesAutoresizingMaskIntoConstraints = false
+            webView.scrollView.isScrollEnabled = isScrollEnabled
             addSubview(webView)
             if MarkupEditor.toolbarLocation == .top {
-                toolbar = MarkupToolbarUIView(markupDelegate: markupDelegate).makeManaged()
+                toolbar = MarkupToolbarUIView(markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor).makeManaged()
                 toolbar.translatesAutoresizingMaskIntoConstraints = false
                 toolbarHeightConstraint = NSLayoutConstraint(item: toolbar!, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: MarkupEditor.toolbarStyle.height())
                 addSubview(toolbar) // Is on top
@@ -87,7 +92,7 @@ public class MarkupEditorUIView: UIView, MarkupDelegate {
                     webView.rightAnchor.constraint(equalTo: safeAreaLayoutGuide.rightAnchor)
                 ])
             } else if MarkupEditor.toolbarLocation == .bottom {
-                toolbar = MarkupToolbarUIView(markupDelegate: markupDelegate).makeManaged()
+                toolbar = MarkupToolbarUIView(markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor).makeManaged()
                 toolbar.translatesAutoresizingMaskIntoConstraints = false
                 toolbarHeightConstraint = NSLayoutConstraint(item: toolbar!, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: MarkupEditor.toolbarStyle.height())
                 addSubview(toolbar) // Is on top
@@ -109,7 +114,7 @@ public class MarkupEditorUIView: UIView, MarkupDelegate {
                     webView.rightAnchor.constraint(equalTo: safeAreaLayoutGuide.rightAnchor)
                 ])
                 // for the scenario that requires an override of inputAccessoryView
-                webView.inputAccessoryView = MarkupToolbarUIView.inputAccessory(markupDelegate: markupDelegate)
+                webView.inputAccessoryView = MarkupToolbarUIView.inputAccessory(markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor)
             }
         }
     
@@ -117,4 +122,20 @@ public class MarkupEditorUIView: UIView, MarkupDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
+    public func becomeFirstResponderIfReady() {
+        webView.becomeFirstResponderIfReady()
+    }
+
+    public func setHtml(with html: String) {
+        webView.setHtml(html)
+    }
+
+    public func setPlaceholder(with placeholder: String) {
+        webView.placeholder = placeholder
+        webView.setPlaceholder()
+    }
+
+    public override var isFirstResponder: Bool {
+        webView.hasFocus
+    }
 }

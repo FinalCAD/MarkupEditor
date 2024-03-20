@@ -29,19 +29,22 @@ public struct MarkupEditorView: View, MarkupDelegate {
     private var id: String?
     private var html: Binding<String>?
     private var selectAfterLoad: Bool = true
+    private var withKeyboardButton: Bool
+    private var backgroundColor: Color
+
     /// The placeholder text that should be shown when there is no user input.
     public var placeholder: String?
     
     public var body: some View {
         VStack(spacing: 0) {
             if MarkupEditor.toolbarLocation == .top {
-                MarkupToolbar(markupDelegate: markupDelegate).makeManaged()
+                MarkupToolbar(markupDelegate: markupDelegate, backgroundColor: backgroundColor).makeManaged()
                 Divider()
             }
-            MarkupWKWebViewRepresentable(markupDelegate: markupDelegate, wkNavigationDelegate: wkNavigationDelegate, wkUIDelegate: wkUIDelegate, userScripts: userScripts, configuration: markupConfiguration, html: html, placeholder: placeholder, selectAfterLoad: selectAfterLoad, resourcesUrl: resourcesUrl, id: id)
+            MarkupWKWebViewRepresentable(markupDelegate: markupDelegate, wkNavigationDelegate: wkNavigationDelegate, wkUIDelegate: wkUIDelegate, userScripts: userScripts, configuration: markupConfiguration, html: html, placeholder: placeholder, selectAfterLoad: selectAfterLoad, resourcesUrl: resourcesUrl, id: id, backgroundColor: backgroundColor)
             if MarkupEditor.toolbarLocation == .bottom {
                 Divider()
-                MarkupToolbar(markupDelegate: markupDelegate).makeManaged()
+                MarkupToolbar(markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor).makeManaged()
             }
         }
     }
@@ -56,7 +59,11 @@ public struct MarkupEditorView: View, MarkupDelegate {
         placeholder: String? = nil,
         selectAfterLoad: Bool = true,
         resourcesUrl: URL? = nil,
-        id: String? = nil) {
+        id: String? = nil,
+        withKeyboardButton: Bool = false,
+        backgroundColor: Color) {
+            self.withKeyboardButton = withKeyboardButton
+            self.backgroundColor = backgroundColor
             self.markupDelegate = markupDelegate ?? self
             self.wkNavigationDelegate = wkNavigationDelegate
             self.wkUIDelegate = wkUIDelegate
@@ -73,6 +80,6 @@ public struct MarkupEditorView: View, MarkupDelegate {
 
 struct MarkupEditorView_Previews: PreviewProvider {
     static var previews: some View {
-            MarkupEditorView()
+        MarkupEditorView(backgroundColor: .white)
     }
 }
