@@ -17,6 +17,33 @@
 body {
     font-family: -apple-system;
     font: -apple-system-body;
+    caret-color: red;   /* Helps with debugging since should not appear */
+    color: #172134;
+    background-color: #F4F6F8;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: #FFFFFF;
+        background-color: #172134;
+    }
+}
+
+#editor {
+    caret-color: blue;
+    cursor: auto;
+    /* The overflow and margin are set primarily to deal gracefully with
+     * selecting resizable images that are at the edge of the screen.
+     */
+    overflow: visible;
+    margin: 2px;
+    /* MU.padBottom() sets this value in px based on fullHeight */
+    --padBottom: 0;
+    padding-block: 0 var(--padBottom);
+}
+
+#editor:focus {
+    outline: none !important;
 }
 
 a {
