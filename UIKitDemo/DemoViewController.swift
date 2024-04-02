@@ -81,7 +81,7 @@ class DemoViewController: UIViewController {
         stack.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(stack)
         // Create the webView
-        let markupEditorView = MarkupEditorUIView(markupDelegate: self, html: demoHtml(), resourcesUrl: resourcesUrl, id: "Document")
+        let markupEditorView = MarkupEditorUIView(markupDelegate: self, html: demoHtml(), resourcesUrl: resourcesUrl, id: "Document", backgroundColor: .white)
         stack.addArrangedSubview(markupEditorView)
         bottomStack = UIStackView()
         bottomStack.isHidden = true

@@ -47,11 +47,11 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     /// The HTML that is currently loaded, if it is loaded. If it has not been loaded yet, it is the
     /// HTML that will be loaded once it finishes initializing.
     private var html: String?
-    private var placeholder: String?            // A string to show when html is nil or empty
+    public var placeholder: String?            // A string to show when html is nil or empty
     public var selectAfterLoad: Bool = true     // Whether to set the selection after loading html
     public var baseUrl: URL { cacheUrl() }      // The working directory for this WKWebView, where markup.html etc are loaded-from
     private var resourcesUrl: URL?
-    public var id: String = UUID().uuidString
+    public let id: String
     /// User scripts that are injected at the end of document.
     public var userScripts: [String]? {
         didSet {
@@ -110,29 +110,29 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     }
     
     public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+        self.id = UUID().uuidString
         super.init(frame: frame, configuration: configuration)
-        initForEditing()
+        initForEditing(background: Color(uiColor: .systemBackground))
     }
     
     public required init?(coder: NSCoder) {
+        self.id = UUID().uuidString
         super.init(frame: CGRect.zero, configuration: WKWebViewConfiguration())
-        initForEditing()
+        initForEditing(background: Color(uiColor: .systemBackground))
     }
-    
-    public init(html: String? = nil, placeholder: String? = nil, selectAfterLoad: Bool = true, resourcesUrl: URL? = nil, id: String? = nil, markupDelegate: MarkupDelegate? = nil, configuration: MarkupWKWebViewConfiguration? = nil) {
+
+    public init(html: String? = nil, placeholder: String? = nil, selectAfterLoad: Bool = true, resourcesUrl: URL? = nil, id: String, markupDelegate: MarkupDelegate? = nil, configuration: MarkupWKWebViewConfiguration? = nil, backgroundColor: Color) {
+        self.id = id
         super.init(frame: CGRect.zero, configuration: WKWebViewConfiguration())
         self.html = html
         self.placeholder = placeholder
         self.selectAfterLoad = selectAfterLoad
         self.resourcesUrl = resourcesUrl
-        if id != nil {
-            self.id = id!
-        }
         self.markupDelegate = markupDelegate
         // If configuration arrives as nil, set it to the default.
         // This way the setTopLevelAttributes will set editor to be contenteditable.
         markupConfiguration = configuration ?? MarkupWKWebViewConfiguration()
-        initForEditing()
+        initForEditing(background: backgroundColor)
     }
     
     /// Set things up properly for editing.
@@ -146,9 +146,9 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     /// Once all the files are properly set up in the cacheDir, we loadFileURL on the markup.html
     /// which in turn loads the css and js scripts itself. The markup.html defines the "editor" element, which
     /// is later populated with html.
-    private func initForEditing() {
+    private func initForEditing(background: Color) {
         isOpaque = false                        // Eliminate flash in dark mode
-        backgroundColor = .systemBackground     // Eliminate flash in dark mode
+        backgroundColor = UIColor(background)   // Eliminate flash in dark mode
         initRootFiles()
         markupDelegate?.markupSetup(self)
         // Enable drop interaction
@@ -162,7 +162,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         tintColor = tintColor.resolvedColor(with: .current)
         // Set up the accessoryView to be a MarkupToolbarUIView only if toolbarLocation == .keyboard
         if MarkupEditor.toolbarLocation == .keyboard {
-            inputAccessoryView = MarkupToolbarUIView.inputAccessory(markupDelegate: markupDelegate)
+            inputAccessoryView = MarkupToolbarUIView.inputAccessory(markupDelegate: markupDelegate, backgroundColor: background)
         }
         observeFirstResponder()
     }
