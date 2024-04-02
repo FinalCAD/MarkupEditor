@@ -1540,7 +1540,10 @@ const _redoOperation = function(undoerData) {
         case 'insertLink':
             _redoInsertLink(undoerData);
             break;
-        case 'deleteLink':
+        case 'insertColor':
+            _redoInsertColor(undoerData);
+            break;
+            case 'deleteLink':
             _redoDeleteLink(undoerData);
             break;
         case 'insertImage':
@@ -7324,7 +7327,7 @@ const _updatePlaceholder = function() {
  */
 const _paragraphStyleTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];                  // All paragraph styles
 
-const _formatTags = ['B', 'I', 'U', 'DEL', 'SUB', 'SUP', 'CODE'];                       // All possible (nestable) formats
+const _formatTags = ['B', 'I', 'U', 'DEL', 'SUB', 'SUP', 'CODE', 'SPAN'];                       // All possible (nestable) formats
 
 const _listTags = ['UL', 'OL'];                                                         // Types of lists
 
@@ -7736,6 +7739,195 @@ MU.testPasteTextPreprocessing = function(html) {
     const minimalHTML = _minimalHTML(fragment);
     return minimalHTML;
 };
+
+/********************************************************************************
+ * Colors
+ */
+// Example: <span style=\"color: rgba(73, 203, 12, 1.0);\">
+
+//MARK: Colors
+/**
+ * Transfrom hex color into rgb
+ * @param {String}  h             the hex color
+ */
+
+const _hexToRgbA = hex => {
+    let alpha = false,
+      h = hex.slice(hex.startsWith('#') ? 1 : 0);
+
+    console.log(hex)
+
+    if (h.length === 3) h = [...h].map(x => x + x).join('');
+    else if (h.length === 8) alpha = true;
+    h = parseInt(h, 16);
+    return (
+      'rgb' +
+      (alpha ? 'a' : '') +
+      '(' +
+      (h >>> (alpha ? 24 : 16)) +
+      ', ' +
+      ((h & (alpha ? 0x00ff0000 : 0x00ff00)) >>> (alpha ? 16 : 8)) +
+      ', ' +
+      ((h & (alpha ? 0x0000ff00 : 0x0000ff)) >>> (alpha ? 8 : 0)) +
+      (alpha ? `, ${h & 0x000000ff}` : '') +
+      ')'
+    );
+  };
+
+/**
+ * Transfrom hex color into balise
+ * @param {String}  h             h
+ */
+const _rgbToBalise = function rgbToBalise(h) {
+    return "color: " + _hexToRgbA(h) + ";"
+}
+
+// const _findOrCreateTagColor = function(hexa) {
+//     // Vérifier s'il y a une sélection
+//     let selection = window.getSelection();
+//     let color = _hexToRgbA(hexa)
+//     console.log(color)
+//     console.log(!selection.isCollapsed)
+
+//     if (!selection.isCollapsed) {
+//         // Si une sélection est faite, envelopper le texte sélectionné avec la balise <span> et le style couleur
+//         let span = document.createElement('span');
+//         span.style.color = color;
+        
+//         console.log(span)
+
+//         // Récupérer la plage de sélection
+//         let range = selection.getRangeAt(0).cloneRange();
+
+//         console.log(range)
+
+//         // Entourer la sélection avec le span
+//         range.surroundContents(span);
+        
+//         // Remplacer la sélection avec le span
+//         selection.removeAllRanges();
+//         selection.addRange(range);
+//     } else {
+//         // S'il n'y a pas de sélection, insérer simplement une balise <span> avec le style couleur à l'emplacement du curseur
+//         let span = document.createElement('span');
+//         span.style.color = color;
+
+//         console.log(span)
+
+//         // Insérer le span à l'emplacement du curseur
+//         let selectionRange = selection.getRangeAt(0);
+
+//         console.log(selectionRange)
+
+//         selectionRange.insertNode(span);
+//     }
+
+//     _backupSelection();
+//     _callbackInput();
+// };
+
+const _findOrCreateTagColor = function(hexa) {
+    let type = 'SPAN'
+    const sel = document.getSelection();
+    const selNode = (sel) ? sel.anchorNode : null;
+    if (!sel || !selNode || !sel.rangeCount) { return };
+    const range = sel.getRangeAt(0);
+    let tagRange;
+    let existingElement = _findFirstParentElementInNodeNames(selNode, [type]);
+    if (existingElement) {
+        //_consoleLog("\nTOGGLING " + type + " OFF")
+        // The selection can be within a single text node but only encompass part of it.
+        // In this case, we will split that text node and reassign existingElement
+        // before proceeding.
+        if (!sel.isCollapsed) {
+            existingElement = _selectedSubTextElement(sel, type);
+        };
+        let newRange;
+        const nextNode = existingElement.nextSibling;
+        const endOfNode = sel.isCollapsed && _isTextNode(selNode) && !(selNode.nextSibling) && (range.endOffset === selNode.textContent.length);
+        const emptyNextNode = !nextNode || (nextNode && _isTextNode(nextNode) && (nextNode.textContent.length === 0));
+        const placeholderChar = '\u200B';  // A zero width char (where '\u00A0' would be space)
+        if (endOfNode && emptyNextNode && range.collapsed) {
+            // We are at the end of a formatted piece of text, with nothing ahead of us.
+            // We want to allow continued typing in unformatted text.
+            // Append a zero width char and select after it. If we continue to type, text will be unformatted.
+            // The downside is that navigation with arrow keys knows there is a character there, but the user
+            // cannot see it (as is the case on inserting an empty formatting element like <b></b>. An
+            // alternative is to insert a space, which works okay, but would probably be unexpected by a user.
+            newRange = document.createRange();
+            const emptyTextNode = document.createTextNode(placeholderChar);
+            existingElement.parentNode.insertBefore(emptyTextNode, nextNode);
+            newRange.setStart(emptyTextNode, 1);
+            newRange.setEnd(emptyTextNode, 1);
+            sel.removeAllRanges();
+            sel.addRange(newRange);
+
+            console.log("endOfNode && emptyNextNode && range.collapsed")
+
+        } else {
+            // The existingNode can contain only the placeholderChar, and if so, we need to unset it.
+            // This also ensures that undo works properly.
+            const textNode = existingElement.firstChild;
+            const cleanText = existingElement.textContent.replace(placeholderChar, '');
+            if (cleanText.length === 0) {
+                console.log("cleanText.length === 0")
+
+                textNode.textContent = '';
+                newRange = document.createRange();
+                newRange.setStart(textNode, 0);
+                newRange.setEnd(textNode, 0);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+                tagRange = _unsetTag(existingElement, sel, true);
+            } else {
+                tagRange = _unsetTag(existingElement, sel, true);
+                console.log("LAST ELSE")
+            };
+        };
+    } 
+
+    tagRange = _setTag(type, sel);
+
+    console.log(tagRange)
+
+    // Add style
+    _cleanUpAttributesWithin('style', tagRange.startContainer.parentElement)
+    tagRange.startContainer.parentElement.setAttribute('style', _rgbToBalise(hexa));
+
+    _backupSelection();
+    _callbackInput();
+    return tagRange;
+};
+
+/**
+ * Insert a hexa color to style. When the selection is collapsed, the color is inserted
+ * at the selection point as a style.
+ *
+ * When done, re-select the range and back it up.
+ *
+ * @param {String}  hexa             The hexa to use for the color
+ * @param {Boolean} undoable        True if we should push undoerData onto the undo stack.
+ */
+MU.insertColor = function(hexa) {
+    _findOrCreateTagColor(hexa)
+};
+
+/**
+ * Do the insertLink operation following a deleteLink operation
+ * Used to undo the deleteLink operation and to do the insertLink operation.
+ *
+ * @param {Object}  undoerData  The undoerData instance created at push time.
+ */
+const _redoInsertColor = function(undoerData) {
+    // Reset the selection based on the range after the link was removed,
+    // then insert the link at that range. After the link is re-inserted,
+    // the insertLink operation leaves the selection properly set,
+    // but we have to update the undoerData.range to reflect it.
+    _restoreUndoerRange(undoerData);
+    _backupSelection();
+    MU.insertColor(undoerData.data, false);
+    _backupUndoerRange(undoerData);
+}
 
 /********************************************************************************
  * Links
@@ -9353,7 +9545,7 @@ const _stripZeroWidthChars = function(element) {
  *
  * To do this, with p = selected paragraph, we call _splitElement(p, 1, 'BLOCKQUOTE', 'AFTER')
  */
-const _splitElement = function(element, offset, rootName=null, direction='AFTER') {
+const _splitElement = function(element, offset, rootName=null, direction='AFTER', color=null) {
     if (!_isElementNode(element)) {
         const error = MUError.InvalidSplitElement;
         error.setInfo(_textString(element, 'Element: '));
@@ -9418,6 +9610,11 @@ const _splitElement = function(element, offset, rootName=null, direction='AFTER'
     } else {
         trailingElement = newElement;
     }
+
+    if (color != nil) {
+        trailingElement.style.color = color
+    }
+
     // And if we had to recreate the structure below rootNode, then we need to move
     // all of element's siblings into the trailingRoot also.
     if (!elementIsRootNode) {

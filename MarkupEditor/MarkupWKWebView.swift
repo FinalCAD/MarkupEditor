@@ -35,7 +35,23 @@ import UniformTypeIdentifiers
 ///
 /// If you have your own inputAccessoryView, then you must set MarkupEditor.toolbarPosition to .none and deal with
 /// everything yourself.
-public class MarkupWKWebView: WKWebView, ObservableObject {
+public class MarkupWKWebView: WKWebView, ObservableObject, WKScriptMessageHandler {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage) {
+
+                // The WKScriptMessageHandler name
+                // of the sender is message.name
+                if message.name == "error" {
+                    // Parse the response object to obtain the error
+                    let body = message.body as? [String: Any]
+                    let error = body?["message"] as? String
+                    print(error)
+                }
+            }
+    }
+    
     public typealias TableBorder = MarkupEditor.TableBorder
     public typealias TableDirection = MarkupEditor.TableDirection
     public typealias FindDirection = MarkupEditor.FindDirection
@@ -56,7 +72,9 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     public var userScripts: [String]? {
         didSet {
             if let userScripts {
+                configuration.defaultWebpagePreferences.allowsContentJavaScript = true
                 configuration.userContentController.removeAllUserScripts()
+                configuration.userContentController.add(self, name: "error")
                 for script in userScripts {
                     let wkUserScript = WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
                     configuration.userContentController.addUserScript(wkUserScript)
@@ -796,7 +814,15 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
             evaluateJavaScript("MU.insertLink('\(href!.escaped)')") { result, error in handler?() }
         }
     }
-    
+
+    public func insertColor(_ hexa: String?, handler: (()->Void)? = nil) {
+        if let hexa {
+            evaluateJavaScript("MU.insertColor('\(hexa.escaped)')") { result, error in handler?() }
+        } else {
+            evaluateJavaScript("MU.deleteColor()") { result, error in handler?() }
+        }
+    }
+
     public func insertImage(src: String?, alt: String?, handler: (()->Void)? = nil) {
         var args = "'\(src!.escaped)'"
         if alt != nil {
@@ -1216,7 +1242,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
             handler?()
         }
     }
-    
+
     //MARK: Selection state
     
     /// Get the selectionState async and execute a handler with it.
