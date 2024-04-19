@@ -24,6 +24,7 @@ public struct MarkupToolbar: View {
     private let backgroundColor: Color
     @ObservedObject private var observedWebView = MarkupEditor.observedWebView
     @ObservedObject private var selectionState = MarkupEditor.selectionState
+    @ObservedObject private var searchActive = MarkupEditor.searchActive
     private var contents: ToolbarContents
     public var markupDelegate: MarkupDelegate?
     
