@@ -3283,8 +3283,8 @@ const _initializeRange = function() {
         const selection = document.getSelection();
         selection.removeAllRanges();
         const range = document.createRange();
-        range.setStart(firstChild, 0);
-        range.setEnd(firstChild, 0);
+        range.setStart(firstChild, firstChild.length);
+        range.setEnd(firstChild, firstChild.length);
         selection.addRange(range);
         _backupSelection();
     } else {
