@@ -30,10 +30,10 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             if UIDevice.current.userInterfaceIdiom == .mac {
                 return 30
             } else {
-                return 48
+                return 69
             }
         case .labeled:
-            return 48
+            return 69
         }
     }
     
