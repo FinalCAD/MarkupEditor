@@ -22,7 +22,7 @@ import WebKit
 public struct MarkupWKWebViewRepresentable: UIViewRepresentable {
     public typealias Coordinator = MarkupCoordinator
     /// The initial HTML content to be shown in the MarkupWKWebView.
-    public let markupDelegate: MarkupDelegate
+    public let markupDelegate: MarkupDelegate?
     private var wkNavigationDelegate: WKNavigationDelegate?
     private var wkUIDelegate: WKUIDelegate?
     private var userScripts: [String]?
@@ -38,7 +38,8 @@ public struct MarkupWKWebViewRepresentable: UIViewRepresentable {
     ///
     /// When html is updated externally, it will trigger updateUIView, which sets webView's html.
     public init(
-        markupDelegate: MarkupDelegate,
+        id: String,
+        markupDelegate: MarkupDelegate? = nil,
         wkNavigationDelegate: WKNavigationDelegate? = nil,
         wkUIDelegate: WKUIDelegate? = nil,
         userScripts: [String]? = nil,
@@ -47,8 +48,8 @@ public struct MarkupWKWebViewRepresentable: UIViewRepresentable {
         placeholder: String? = nil,
         selectAfterLoad: Bool = true,
         resourcesUrl: URL? = nil,
-        id: String,
-        backgroundColor: Color) {
+        backgroundColor: Color = .white
+    ) {
             self.markupDelegate = markupDelegate
             self.wkNavigationDelegate = wkNavigationDelegate
             self.wkUIDelegate = wkUIDelegate

@@ -26,7 +26,7 @@ struct CustomContentView: View {
             Spacer()
             Label("Word count: \(wordCount)", systemImage: "text.word.spacing")
             Spacer()
-            MarkupEditorView(markupDelegate: self, configuration: markupConfiguration, html: $demoHtml, id: "Document")
+            MarkupEditorView(id: "Document", markupDelegate: self, configuration: markupConfiguration, html: $demoHtml)
             if rawShowing {
                 VStack {
                     Divider()

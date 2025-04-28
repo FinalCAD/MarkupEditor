@@ -21,7 +21,7 @@ struct DivsContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            MarkupEditorView(markupDelegate: self, configuration: markupConfiguration, html: $demoHtml, id: "SpaDocument")
+            MarkupEditorView(id: "SpaDocument", markupDelegate: self, configuration: markupConfiguration, html: $demoHtml)
             if rawShowing {
                 VStack {
                     Divider()

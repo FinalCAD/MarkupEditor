@@ -20,7 +20,7 @@ import WebKit
 /// In general, we don't want WebKit abstractions to leak into the MarkupEditor world. When the MarkupEditorView is instantiated, you can optionally
 /// specify the WKUIDelegate and WKNavigationDelegate if needed, which will be assigned to the underlying MarkupWKWebView.
 public struct MarkupEditorView: View, MarkupDelegate {
-    private let markupDelegate: MarkupDelegate
+    private var markupDelegate: MarkupDelegate?
     private var wkNavigationDelegate: WKNavigationDelegate?
     private var wkUIDelegate: WKUIDelegate?
     private var userScripts: [String]?
@@ -41,7 +41,20 @@ public struct MarkupEditorView: View, MarkupDelegate {
                 MarkupToolbar(markupDelegate: markupDelegate, backgroundColor: backgroundColor).makeManaged()
                 Divider()
             }
-            MarkupWKWebViewRepresentable(markupDelegate: markupDelegate, wkNavigationDelegate: wkNavigationDelegate, wkUIDelegate: wkUIDelegate, userScripts: userScripts, configuration: markupConfiguration, html: html, placeholder: placeholder, selectAfterLoad: selectAfterLoad, resourcesUrl: resourcesUrl, id: id, backgroundColor: backgroundColor)
+            
+            MarkupWKWebViewRepresentable(
+                id: id,
+                markupDelegate: markupDelegate,
+                wkNavigationDelegate: wkNavigationDelegate,
+                wkUIDelegate: wkUIDelegate,
+                userScripts: userScripts,
+                configuration: markupConfiguration,
+                html: html,
+                placeholder: placeholder,
+                selectAfterLoad: selectAfterLoad,
+                resourcesUrl: resourcesUrl
+            )
+            
             if MarkupEditor.toolbarLocation == .bottom {
                 Divider()
                 MarkupToolbar(markupDelegate: markupDelegate, withKeyboardButton: withKeyboardButton, backgroundColor: backgroundColor).makeManaged()
@@ -50,7 +63,8 @@ public struct MarkupEditorView: View, MarkupDelegate {
     }
     
     public init(
-        markupDelegate: MarkupDelegate,
+        id: String,
+        markupDelegate: MarkupDelegate? = nil,
         wkNavigationDelegate: WKNavigationDelegate? = nil,
         wkUIDelegate: WKUIDelegate? = nil,
         userScripts: [String]? = nil,
@@ -59,9 +73,8 @@ public struct MarkupEditorView: View, MarkupDelegate {
         placeholder: String? = nil,
         selectAfterLoad: Bool = true,
         resourcesUrl: URL? = nil,
-        id: String,
         withKeyboardButton: Bool = false,
-        backgroundColor: Color) {
+        backgroundColor: Color = .white) {
             self.withKeyboardButton = withKeyboardButton
             self.backgroundColor = backgroundColor
             self.id = id

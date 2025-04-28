@@ -29,7 +29,7 @@ struct SearchableContentView: View {
         VStack(spacing: 0) {
             SearchBar()
                 .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-            MarkupEditorView(markupDelegate: self, html: $demoHtml, id: "Document")
+            MarkupEditorView(id: "Document", markupDelegate: self, html: $demoHtml)
         }
         .pick(isPresented: $selectImage.value, documentTypes: MarkupEditor.supportedImageTypes, onPicked: imageSelected(url:), onCancel: nil)
         .onDisappear { MarkupEditor.selectedWebView = nil }
