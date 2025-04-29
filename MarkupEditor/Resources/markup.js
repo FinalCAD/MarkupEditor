@@ -14683,6 +14683,23 @@
       toDOM() { return supDOM }
     },
 
+    span: {
+      attrs: {
+        style: {default:null}
+      },
+      parseDOM: [{ 
+        tag: "span", 
+        getAttrs(dom) {
+          return {style: dom.getAttribute('style')}
+        }
+      }],
+      toDOM(node) { 
+        let {style} = node.attrs;
+
+        return ['span', {style}, 0] 
+      }
+    },
+
     // :: MarkSpec A strong mark. Rendered as `<strong>`, parse rules
     // also match `<b>` and `font-weight: bold`.
     strong: {
@@ -14691,7 +14708,8 @@
                  // pasted content will be inexplicably wrapped in `<b>`
                  // tags with a font-weight normal.
                  {tag: "b", getAttrs: node => node.style.fontWeight != "normal" && null},
-                 {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}],
+                 {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}
+                ],
       toDOM() { return strongDOM }
     },
 
@@ -17784,7 +17802,7 @@
   // Given a schema, look for default mark and node types in it and
   // return an object with relevant menu items relating to those marks:
   //
-  // **`toggleStrong`**`: MenuItem`
+  // **`rong`**`: MenuItem`
   //   : A menu item to toggle the [strong mark](#schema-basic.StrongMark).
   //
   // **`toggleEm`**`: MenuItem`
@@ -17841,7 +17859,7 @@
   function buildMenuItems(schema) {
     let r = {}, type;
     if (type = schema.marks.strong)
-      r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: icons.strong});
+      r.rong = markItem(type, {title: "Toggle strong style", icon: icons.strong});
     if (type = schema.marks.em)
       r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: icons.em});
     if (type = schema.marks.u)
@@ -17926,7 +17944,7 @@
       r.splitCell, 
       r.toggleHeaderRow]), { label: 'Table' });
 
-    r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleU, r.toggleCode, r.toggleS, r.toggleLink])];
+    r.inlineMenu = [cut([r.rong, r.toggleEm, r.toggleU, r.toggleCode, r.toggleS, r.toggleLink])];
     r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, joinUpItem,
                         liftItem, selectParentNodeItem])];
     r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu, r.tableMenu]], [[undoItem, redoItem]], r.blockMenu);
@@ -18729,9 +18747,9 @@
    */
 
   // Add STRONG and EM (leaving B and I) to support default ProseMirror output   
-  const _formatTags = ['B', 'STRONG', 'I', 'EM', 'U', 'DEL', 'SUB', 'SUP', 'CODE'];       // All possible (nestable) formats
+  const _formatTags = ['B', 'STRONG', 'I', 'EM', 'U', 'DEL', 'SUB', 'SUP', 'CODE', 'SPAN'];       // All possible (nestable) formats
 
-  const _minimalStyleTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE'];           // Convert to 'P' for pasteText
+  const _minimalStyleTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE', 'SPAN'];           // Convert to 'P' for pasteText
 
   const _voidTags = ['BR', 'IMG', 'AREA', 'COL', 'EMBED', 'HR', 'INPUT', 'LINK', 'META', 'PARAM']; // Tags that are self-closing
 
@@ -19277,7 +19295,7 @@
       let text;
       if (cleanHTML) {
           _cleanUpDivsWithin(editor);
-          _cleanUpSpansWithin(editor);
+        //   _cleanUpSpansWithin(editor);
       }	if (prettyHTML) {
           text = _allPrettyHTML(editor);
       } else {
@@ -19725,7 +19743,7 @@
   /**
    * Toggle the selection to/from strikethrough (<S>)
    */
-  function toggleStrike() {
+  function rike() {
       _toggleFormat('DEL');
   }
   /**
@@ -19746,6 +19764,88 @@
   function toggleSuperscript() {
       _toggleFormat('SUP');
   }
+
+//   function toggleMark(markType, attrs = null, options) {
+//     return function (state, dispatch) {
+//         let { empty, $cursor, ranges } = state.selection;
+//         if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType))
+//             return false;
+//         if (dispatch) {
+//             if ($cursor) {
+//                 if (markType.isInSet(state.storedMarks || $cursor.marks()))
+//                     dispatch(state.tr.removeStoredMark(markType));
+//                 else
+//                     dispatch(state.tr.addStoredMark(markType.create(attrs)));
+//             }
+//             else {
+//                 let add, tr = state.tr;
+//                 {
+//                     add = !ranges.some(r => state.doc.rangeHasMark(r.$from.pos, r.$to.pos, markType));
+//                 }
+//                 for (let i = 0; i < ranges.length; i++) {
+//                     let { $from, $to } = ranges[i];
+//                     if (!add) {
+//                         tr.removeMark($from.pos, $to.pos, markType);
+//                     }
+//                     else {
+//                         let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+//                         let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+//                         let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+//                         if (from + spaceStart < to) {
+//                             from += spaceStart;
+//                             to -= spaceEnd;
+//                         }
+//                         tr.addMark(from, to, markType.create(attrs));
+//                     }
+//                 }
+//                 dispatch(tr.scrollIntoView());
+//             }
+//         }
+//         return true;
+//     };
+// }
+
+  function setColor(color, backgroundColor) {
+    const markType = view.state.schema.marks.span;
+
+    var style = "";
+    if (!!backgroundColor) {
+        style += `background-color: ${backgroundColor};`;
+    }
+    if (!!color){
+        style += `color: ${color};`;
+    }
+
+    const attrs = {style};
+
+    const {doc, selection, tr} = view.state;
+    let { empty, $cursor, ranges } = selection;
+
+    let newState = true;
+
+    if ($cursor) {
+        if (markType.isInSet(view.state.storedMarks || $cursor.marks()))
+            view.dispatch(view.state.tr.removeStoredMark(markType));
+        else
+            view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
+    } else {
+        for (let i = 0; i < ranges.length; i++) {
+            let { $from, $to } = ranges[i];
+            
+            let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+            if (from + spaceStart < to) {
+                from += spaceStart;
+                to -= spaceEnd;
+            }
+            tr.addMark(from, to, markType.create(attrs));
+        }
+
+        view.dispatch(tr.scrollIntoView());
+    }
+  }
+
   /**
    * Turn the format tag off and on for selection.
    * 
@@ -19754,7 +19854,7 @@
    *
    * @param {string} type     The *uppercase* type to be toggled at the selection.
    */
-  function _toggleFormat(type) {
+  function _toggleFormat(type, attrs) {
       const state = view.state;
       let toggle;
       switch (type) {
@@ -19779,10 +19879,18 @@
           case 'SUP':
               toggle = toggleMark(state.schema.marks.sup);
               break;
-      }    if (toggle) {
+          case 'SPAN':
+              let temp = toggleMark(state.schema.marks.span, attrs);
+              temp(state, view.dispatch);
+              //stateChanged();
+              break;
+      }    
+      
+      if (toggle) {
           toggle(state, view.dispatch);
           stateChanged();
-      }}
+      }
+   }
   /********************************************************************************
    * Styling
    * 1. Styles (P, H1-H6) are applied to blocks
@@ -19790,7 +19898,6 @@
    * 3. Every block should have some style
    */
   //MARK: Styling
-
 
   /**
    * Set the paragraph style at the selection to `style` 
@@ -20375,6 +20482,10 @@
       state['sub'] = markTypes.has(schema.marks.sub);
       state['sup'] = markTypes.has(schema.marks.sup);
       state['code'] = markTypes.has(schema.marks.code);
+
+      const {backgroundColor, color} = _getSpanAttributes();
+      state['backgroundColor'] = backgroundColor;
+      state['color'] = color;
       return state;
   };
 
@@ -20470,6 +20581,31 @@
               return {href: linkMarks[0].attrs.href, link: selectedNode.text};
           }    }    return {};
   }
+
+  function _getSpanAttributes() {
+      const selection = view.state.selection;
+      const selectedNodes = [];
+      view.state.doc.nodesBetween(selection.from, selection.to, node => {
+          if (node.isText) selectedNodes.push(node);
+      });
+      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
+      if (selectedNode) {
+          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.span);
+          
+          if (linkMarks.length === 1) {
+            const style = linkMarks[0].attrs.style.split(';').reduce((dict, el, index) => {
+                let [key, value] = el.split(':').map((v) => v.trim());
+                return (dict[key] = value, dict)
+            }, {});
+              return {
+                backgroundColor: style['background-color'], 
+                color: style['color']
+              };
+          }
+      }    
+      return {};
+  }
+
   /**
    * Return the image attributes at the selection
    * @returns {Object}   An Object whose properties are <img> attributes (like src, alt, width, height, scale) at the selection.
@@ -21762,6 +21898,7 @@
   exports.removeButton = removeButton;
   exports.removeDiv = removeDiv;
   exports.replaceStyle = replaceStyle;
+  
   exports.resetSelection = resetSelection;
   exports.searchFor = searchFor;
   exports.setHTML = setHTML;
@@ -21780,7 +21917,8 @@
   exports.toggleCode = toggleCode;
   exports.toggleItalic = toggleItalic;
   exports.toggleListItem = toggleListItem;
-  exports.toggleStrike = toggleStrike;
+  exports.setColor = setColor;
+  exports.rike = rike;
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;
   exports.toggleUnderline = toggleUnderline;

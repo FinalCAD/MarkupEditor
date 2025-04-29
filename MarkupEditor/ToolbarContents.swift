@@ -125,11 +125,15 @@ public struct FormatContents {
     public var code: Bool
     public var strike: Bool
     public var subSuper: Bool
+    public var backgroundColor: Bool
+    public var foregroundColor: Bool
     
-    public init(code: Bool = true, strike: Bool = true, subSuper: Bool = false) {
+    public init(code: Bool = true, strike: Bool = true, subSuper: Bool = false, backgroundColor: Bool = true, foregroundColor: Bool = true) {
         self.code = code
         self.strike = strike
         self.subSuper = subSuper
+        self.backgroundColor = backgroundColor
+        self.foregroundColor = foregroundColor
     }
 }
 

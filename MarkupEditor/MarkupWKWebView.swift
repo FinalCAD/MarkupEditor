@@ -1190,6 +1190,17 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
+    @objc public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil) {
+        color(foregroundColor: foregroundColor, backgroundColor: backgroundColor, handler: nil)
+    }
+    
+    public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.setColor('\(foregroundColor?.toWebRgb() ?? "")', '\(backgroundColor?.toWebRgb() ?? "")')") { result, error in
+            print("\(result) \(error)")
+            handler?()
+        }
+    }
+    
     //MARK: Selection state
     
     /// Get the selectionState async and execute a handler with it.
@@ -1284,6 +1295,19 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         selectionState.sub = stateDictionary["sub"] as? Bool ?? false
         selectionState.sup = stateDictionary["sup"] as? Bool ?? false
         selectionState.code = stateDictionary["code"] as? Bool ?? false
+        
+        selectionState.foregroundColor = if let rawColor = stateDictionary["color"] as? String, rawColor.isEmpty == false {
+            try? UIColor(rgba: rawColor)
+        } else {
+            nil
+        }
+        
+        selectionState.backgroundColor = if let rawColor = stateDictionary["backgroundColor"] as? String, rawColor.isEmpty == false {
+            try? UIColor(rgba: rawColor)
+        } else {
+            nil
+        }
+        
         return selectionState
     }
     
@@ -1332,6 +1356,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     /// A null value of oldStyle results in an unstyled element being styled (which really should never happen)
     public func replaceStyle(_ oldStyle: StyleContext?, with newStyle: StyleContext, handler: (()->Void)? = nil) {
         var replaceCall = "MU.replaceStyle("
+        
         if let oldStyle = oldStyle {
             replaceCall += "'\(oldStyle)', '\(newStyle)')"
         } else {

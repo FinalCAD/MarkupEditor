@@ -66,6 +66,31 @@ public struct FormatToolbar: View {
                     onHover: { over in hoverLabel = Text(over ? "Superscript" : "Text Format") }
                 )
             }
+            
+            if contents.foregroundColor {
+                ToolbarColorButton(color: .init(get: {
+                    Color(selectionState.foregroundColor ?? .clear)
+                }, set: {
+                    selectionState.foregroundColor = UIColor($0)
+                    observedWebView.selectedWebView?.color(
+                        foregroundColor: selectionState.foregroundColor,
+                        backgroundColor: selectionState.backgroundColor
+                    )
+                }))
+            }
+            
+            if contents.backgroundColor {
+                ToolbarColorButton(color: .init(get: {
+                    Color(selectionState.backgroundColor ?? .clear)
+                }, set: {
+                    selectionState.backgroundColor = UIColor($0)
+                    observedWebView.selectedWebView?.color(
+                        foregroundColor: selectionState.foregroundColor,
+                        backgroundColor: selectionState.backgroundColor
+                    )
+                }))
+            }
+            
         }
     }
 }

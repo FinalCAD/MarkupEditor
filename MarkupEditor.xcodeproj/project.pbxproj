@@ -96,6 +96,7 @@
 		AAFB64DB277CEED70032E859 /* steve.png in Resources */ = {isa = PBXBuildFile; fileRef = AAFB64DA277CEECB0032E859 /* steve.png */; };
 		AAFB64DC277CEED80032E859 /* steve.png in Resources */ = {isa = PBXBuildFile; fileRef = AAFB64DA277CEECB0032E859 /* steve.png */; };
 		AAFB64E12780D8290032E859 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD26E87264463AA00908777 /* DocumentPicker.swift */; };
+		F9EBB3252DBFBE64008E9585 /* UIColor+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9EBB3242DBFBE5D008E9585 /* UIColor+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -798,6 +799,7 @@
 		AAFADF41261524AE0024F2DC /* BasicTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BasicTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAFADF64261525B90024F2DC /* MarkupEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MarkupEditor.h; sourceTree = "<group>"; };
 		AAFB64DA277CEECB0032E859 /* steve.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = steve.png; sourceTree = "<group>"; };
+		F9EBB3242DBFBE5D008E9585 /* UIColor+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -837,6 +839,7 @@
 		AA0DDC6928AEA8C70081B869 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				F9EBB3242DBFBE5D008E9585 /* UIColor+Extensions.swift */,
 				AA652ABB260EA194000674B7 /* String+Extensions.swift */,
 				AAA1B0962889D2F000303721 /* View+Extensions.swift */,
 				AAB1043328C6A26A0063BE2A /* UIView+Extensions.swift */,
@@ -3270,6 +3273,7 @@
 				AA0DDC6628AE91920081B869 /* MarkupWKWebViewRepresentable.swift in Sources */,
 				AA8EFAE0261E0A06008AE31E /* CorrectionToolbar.swift in Sources */,
 				AA408B2B2616685B00CAE8B9 /* SelectionState.swift in Sources */,
+				F9EBB3252DBFBE64008E9585 /* UIColor+Extensions.swift in Sources */,
 				AA7B24E42B59A636003C607A /* MarkupDivStructure.swift in Sources */,
 				AA8EFB3B261FB7D8008AE31E /* TableToolbar.swift in Sources */,
 				AA408B2C2616685B00CAE8B9 /* ListContext.swift in Sources */,
@@ -3559,7 +3563,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftUIDemo/Preview Content\"";
-				DEVELOPMENT_TEAM = 7XXG4VJQ59;
+				DEVELOPMENT_TEAM = W66RQZY5WR;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = SwiftUIDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
@@ -3590,7 +3594,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftUIDemo/Preview Content\"";
-				DEVELOPMENT_TEAM = 7XXG4VJQ59;
+				DEVELOPMENT_TEAM = W66RQZY5WR;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = SwiftUIDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.5;

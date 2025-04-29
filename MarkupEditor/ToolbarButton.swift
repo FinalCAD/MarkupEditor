@@ -133,3 +133,22 @@ public struct ToolbarButtonStyle: ButtonStyle {
             )
     }
 }
+
+public struct ToolbarColorButton: View {
+    private let systemName: String?
+    
+    @Binding private var selectedColor: Color
+    @State private var rotation = 0.0
+    
+    let rainbowColors = [ Color.yellow, Color.orange, Color.red,  Color.purple, Color.blue, Color.green ]
+    
+    public var body: some View {
+        ColorPicker("", selection: $selectedColor)
+    }
+    
+    /// Initialize a button using content. See the extension where Content == EmptyView for the systemName style initialization.
+    public init(color: Binding<Color> = .constant(.clear)) {
+        self.systemName = nil
+        _selectedColor = color
+    }
+}

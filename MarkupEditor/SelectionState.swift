@@ -51,6 +51,10 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
     @Published public var sup: Bool = false
     @Published public var code: Bool = false
     
+    // Colors
+    @Published public var foregroundColor: UIColor? = nil
+    @Published public var backgroundColor: UIColor? = nil
+    
     //MARK: Source rect for popovers
     public var sourceRect: CGRect? {
         guard let selrect else {
@@ -162,6 +166,8 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
         sub = selectionState?.sub ?? false
         sup = selectionState?.sup ?? false
         code = selectionState?.code ?? false
+        backgroundColor = selectionState?.backgroundColor
+        foregroundColor = selectionState?.foregroundColor
     }
     
     func formatString() -> String {

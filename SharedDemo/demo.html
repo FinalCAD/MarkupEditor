@@ -10,6 +10,13 @@
 
 <p>When you load an HTML document into the MarkupEditor, the document is styled using <code>markup.css</code>. In this demo, you can use the <em>File</em> toolbar above to examine the raw HTML of this <code>demo.html</code> document. You will see it is "clean" in the sense that it contains no embedded attributes like style, font, or sizing. The overall document styling is up to you as a developer (and it's my intent to have it easily customizable).</p>
 
+<h4><span style="background-color: rgb(126, 211, 33); white-space: pre-wrap;">Colors</span></h4>
+
+<p>
+This is a <span style="background-color: rgb(126, 211, 33); white-space: pre-wrap;">zqdqzdqzd </span>
+<span style="background-color: rgb(126, 211, 33); color: rgb(189, 16, 224); white-space: pre-wrap;">qzdzqdqzdqzdzzqd</span>
+</p>
+
 <h4>Paragraph Style</h4>
 
 <p>This is a <em>Normal</em> style paragraph. The title above this paragraph uses an <em>H4</em> style. As you select in the text, the toolbar indicates the paragraph style of the element you selected.</p>
@@ -105,3 +112,6 @@ print("Hello, world!")
 <p>The File toolbar is part of the demo, but the <code>MarkupToolbar</code> itself does not include the <code>FileToolbar</code>. Check out the <code>DemoContentView</code> in <code>SwiftUIDemo</code> and <code>DemoViewController</code> in the <code>UIKitDemo</code> to see details of how it was done. The demo starts with some initial HTML taken from <code>demo.html</code>, which you are looking at and editing. You can open a different HTML file to see how it behaves. You can also toggle a view of the raw HTML off-and-on from the File toolbar. The raw HTML updates as you edit the document, to show what the MarkupEditor is doing behind the scenes. Note that normally (i.e., when using the MarkupEditor outside of the demo), typing is a very lightweight operation. Because the demo is set up to update the raw HTML as you type, it's a bit more heavyweight than usual.</p>
 
 <p>The demo makes use of the <code>leftToolbar</code> option in the <code>MarkupEditor</code>, which makes it simple to add your own toolbar to the left (and/or with <code>rightToolbar</code> for the other side) of the standard <code>MarkupToolbar</code>. You can just as easily construct your own toolbar in SwiftUI using the toolbar-level views like <code>StyleToolbar</code> and <code>FormatToolbar</code>, or with the <code>LabeledToolbar</code> and <code>ToolbarButton</code> used within them.</p>
+
+
+
