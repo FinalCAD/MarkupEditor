@@ -14684,6 +14684,7 @@
     },
 
     span: {
+      group: 'inline',
       attrs: {
         style: {default:null}
       },
@@ -15704,7 +15705,7 @@
           let splitDepth, deflt, atEnd = false, atStart = false;
           for (let d = $from.depth;; d--) {
               let node = $from.node(d);
-              if (node.isBlock) {
+              if (node && node.isBlock) {
                   atEnd = $from.end(d) == $from.pos + ($from.depth - d);
                   atStart = $from.start(d) == $from.pos - ($from.depth - d);
                   deflt = defaultBlockAt($from.node(d - 1).contentMatchAt($from.indexAfter(d - 1)));
@@ -15745,6 +15746,18 @@
   selection, also delete its content.
   */
   const splitBlock = splitBlockAs();
+
+// :: (EditorState, ?(tr: Transaction)) → Bool
+// Acts like [`splitBlock`](#commands.splitBlock), but without
+// resetting the set of active marks at the cursor.
+function splitBlockKeepMarks(state, dispatch) {
+  return splitBlock(state, dispatch && (tr => {
+    let marks = state.storedMarks || (state.selection.$to.parentOffset && state.selection.$from.marks())
+    if (marks) tr.setStoredMarks(marks)
+    dispatch(tr)
+  }))
+}
+
   /**
   Move the selection to the node wrapping the current selection, if
   any. (Will not select the document node.)
@@ -16001,7 +16014,7 @@
   * **Mod-a** to `selectAll`
   */
   const pcBaseKeymap = {
-      "Enter": chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock),
+      "Enter": chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlockKeepMarks),
       "Mod-Enter": exitCode,
       "Backspace": backspace,
       "Mod-Backspace": backspace,
@@ -19765,46 +19778,6 @@
       _toggleFormat('SUP');
   }
 
-//   function toggleMark(markType, attrs = null, options) {
-//     return function (state, dispatch) {
-//         let { empty, $cursor, ranges } = state.selection;
-//         if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType))
-//             return false;
-//         if (dispatch) {
-//             if ($cursor) {
-//                 if (markType.isInSet(state.storedMarks || $cursor.marks()))
-//                     dispatch(state.tr.removeStoredMark(markType));
-//                 else
-//                     dispatch(state.tr.addStoredMark(markType.create(attrs)));
-//             }
-//             else {
-//                 let add, tr = state.tr;
-//                 {
-//                     add = !ranges.some(r => state.doc.rangeHasMark(r.$from.pos, r.$to.pos, markType));
-//                 }
-//                 for (let i = 0; i < ranges.length; i++) {
-//                     let { $from, $to } = ranges[i];
-//                     if (!add) {
-//                         tr.removeMark($from.pos, $to.pos, markType);
-//                     }
-//                     else {
-//                         let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
-//                         let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
-//                         let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
-//                         if (from + spaceStart < to) {
-//                             from += spaceStart;
-//                             to -= spaceEnd;
-//                         }
-//                         tr.addMark(from, to, markType.create(attrs));
-//                     }
-//                 }
-//                 dispatch(tr.scrollIntoView());
-//             }
-//         }
-//         return true;
-//     };
-// }
-
   function setColor(color, backgroundColor) {
     const markType = view.state.schema.marks.span;
 
@@ -19820,8 +19793,6 @@
 
     const {doc, selection, tr} = view.state;
     let { empty, $cursor, ranges } = selection;
-
-    let newState = true;
 
     if ($cursor) {
         if (markType.isInSet(view.state.storedMarks || $cursor.marks()))
@@ -19880,9 +19851,7 @@
               toggle = toggleMark(state.schema.marks.sup);
               break;
           case 'SPAN':
-              let temp = toggleMark(state.schema.marks.span, attrs);
-              temp(state, view.dispatch);
-              //stateChanged();
+              toggle = toggleMark(state.schema.marks.span, attrs);
               break;
       }    
       
@@ -19904,6 +19873,7 @@
    * @param {String}  style    One of the styles P or H1-H6 to set the selection to.
    */
   function setStyle(style) {
+    
       const node = _nodeFor(style);
       _setParagraphStyle(node);
   }
