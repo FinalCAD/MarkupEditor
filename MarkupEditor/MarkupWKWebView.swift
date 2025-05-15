@@ -1207,7 +1207,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     
     public func setWebViewBackgroundColor(color: UIColor, handler: (()->Void)? = nil) {
         evaluateJavaScript("MU.setWebViewBackgroundColor('\(color.toWebRgb())')") { result, error in
-            print("\(result) \(error)")
+            print("setWebViewBackgroundColor color : \(color.toWebRgb()) ; result : \(result) ; error : \(error)")
             handler?()
         }
     }
