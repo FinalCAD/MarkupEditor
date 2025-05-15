@@ -1201,6 +1201,17 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
+    @objc public func setWebViewBackgroundColor(color: UIColor) {
+        setWebViewBackgroundColor(color: color, handler: nil)
+    }
+    
+    public func setWebViewBackgroundColor(color: UIColor, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.setWebViewBackgroundColor('\(color.toWebRgb())')") { result, error in
+            print("\(result) \(error)")
+            handler?()
+        }
+    }
+    
     //MARK: Selection state
     
     /// Get the selectionState async and execute a handler with it.

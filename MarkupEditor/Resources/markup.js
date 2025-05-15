@@ -19778,6 +19778,13 @@ function splitBlockKeepMarks(state, dispatch) {
       _toggleFormat('SUP');
   }
 
+  /**
+  * Change color for whole body
+  */
+  function setWebViewBackgroundColor(color) {
+      document.body.style.color = color
+  }
+
   function setColor(color, backgroundColor) {
     const markType = view.state.schema.marks.span;
 
@@ -21888,6 +21895,7 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.toggleItalic = toggleItalic;
   exports.toggleListItem = toggleListItem;
   exports.setColor = setColor;
+  exports.setWebViewBackgroundColor = setWebViewBackgroundColor;
   exports.rike = rike;
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;
