@@ -73,8 +73,6 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     ///
     /// The file should be included as a resource of the app that consumes the MarkupEditor.
     private var userCssFile: String? { markupConfiguration?.userCssFile }
-    private var userCssFileUrl: URL? { markupConfiguration?.userCssFileUrl }
-    
     // Doesn't seem like any way around holding on to markupDelegate here, as forced by drop support
     private var markupDelegate: MarkupDelegate?
     /// Track whether a paste action has been invoked so as to avoid double-invocation per https://developer.apple.com/forums/thread/696525
@@ -294,8 +292,6 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         // If specified, the userCSS comes from the app's main bundle, not something MarkupEditor provides
         if let userCssFile, let userCss = url(forResource: userCssFile, withExtension: nil) {
             srcUrls.append(userCss)
-        } else if let userCssFileUrlUW = userCssFileUrl {
-            srcUrls.append(userCssFileUrlUW)
         }
         if let userScriptFile, let userScript = url(forResource: userScriptFile, withExtension: nil) {
             srcUrls.append(userScript)
