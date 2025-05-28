@@ -84,7 +84,7 @@ public struct MarkupToolbar: View {
             HStack {
                 content
                     .environmentObject(toolbarStyle)
-                    .padding(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                    .padding(toolbarStyle.edgesInsets())
                     .disabled(observedWebView.selectedWebView == nil || !selectionState.isValid || searchActive.value)
                     .onTapGesture {}    // To make the buttons responsive inside of the ScrollView
                 if withKeyboardButton {

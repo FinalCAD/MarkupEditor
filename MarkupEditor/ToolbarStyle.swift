@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 @MainActor
 public class ToolbarStyle: @unchecked Sendable, ObservableObject {
@@ -51,6 +52,15 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             }
         case .labeled, .custom:
             return 30
+        }
+    }
+    
+    public func edgesInsets() -> EdgeInsets {
+        switch style {
+        case .compact, .labeled:
+            return EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8)
+        case .custom:
+            return EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
         }
     }
     
