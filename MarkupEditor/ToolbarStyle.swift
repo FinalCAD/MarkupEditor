@@ -49,22 +49,20 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             } else {
                 return 34
             }
-        case .labeled:
+        case .labeled, .custom:
             return 30
-        case .custom:
-            return 40
         }
     }
     
     public static func symbolScale(for style: Style) -> UIImage.SymbolScale {
         switch style {
-        case .compact, .custom:
+        case .compact:
             if UIDevice.current.userInterfaceIdiom == .mac {
                 return .medium
             } else {
                 return .large
             }
-        case .labeled:
+        case .labeled, .custom:
             return .large
         }
     }
