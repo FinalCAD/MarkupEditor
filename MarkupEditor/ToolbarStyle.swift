@@ -38,7 +38,7 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
         case .labeled:
             return 69
         case .custom:
-            return 53
+            return 60
         }
     }
     
