@@ -12,12 +12,14 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
     
     static let compact = ToolbarStyle(.compact)
     static let labeled = ToolbarStyle(.labeled)
+    static let custom = ToolbarStyle(.custom)
     
     var style: Style
 
     public enum Style {
         case compact
         case labeled
+        case custom
     }
     
     public init(_ style: Style = .labeled) {
@@ -34,6 +36,8 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             }
         case .labeled:
             return 69
+        case .custom:
+            return 49
         }
     }
     
@@ -47,12 +51,14 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             }
         case .labeled:
             return 30
+        case .custom:
+            return 40
         }
     }
     
     public static func symbolScale(for style: Style) -> UIImage.SymbolScale {
         switch style {
-        case .compact:
+        case .compact, .custom:
             if UIDevice.current.userInterfaceIdiom == .mac {
                 return .medium
             } else {
