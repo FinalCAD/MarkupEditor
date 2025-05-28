@@ -40,11 +40,11 @@ public struct MarkupToolbar: View {
     @ViewBuilder
     var customToolbarView: some View {
         if let overrideToolbar = MarkupEditor.overrideToolbar {
-            HStack {
-                Spacer()
+//            HStack {
+//                Spacer()
                 overrideToolbar
-                Spacer()
-            }
+//                Spacer()
+//            }
         }
     }
 
