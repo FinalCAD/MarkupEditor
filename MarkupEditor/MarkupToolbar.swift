@@ -30,21 +30,10 @@ public struct MarkupToolbar: View {
     
     @ViewBuilder
     var content: some View {
-        if MarkupEditor.overrideToolbar != nil {
-            customToolbarView
+        if let overrideToolbar = MarkupEditor.overrideToolbar {
+            overrideToolbar
         } else {
             scrollableToolbar
-        }
-    }
-
-    @ViewBuilder
-    var customToolbarView: some View {
-        if let overrideToolbar = MarkupEditor.overrideToolbar {
-//            HStack {
-//                Spacer()
-                overrideToolbar
-//                Spacer()
-//            }
         }
     }
 
