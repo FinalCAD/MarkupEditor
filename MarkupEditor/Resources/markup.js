@@ -19778,44 +19778,42 @@ function splitBlockKeepMarks(state, dispatch) {
       _toggleFormat('SUP');
   }
 
-  function setColor(color, backgroundColor) {
-    const markType = view.state.schema.marks.span;
+    function setColor(color, backgroundColor) {
+        const markType = view.state.schema.marks.span;
 
-    var style = "";
-    if (!!backgroundColor) {
-        style += `background-color: ${backgroundColor};`;
-    }
-    if (!!color){
-        style += `color: ${color};`;
-    }
+        let styleParts = [];
+        if (color) styleParts.push(`color: ${color}`);
+        if (backgroundColor) styleParts.push(`background-color: ${backgroundColor}`);
+        const style = styleParts.join('; ');
+        const attrs = { style };
 
-    const attrs = {style};
+        const { selection } = view.state;
+        const { $cursor, ranges } = selection;
 
-    const {doc, selection, tr} = view.state;
-    let { empty, $cursor, ranges } = selection;
-
-    if ($cursor) {
-        if (markType.isInSet(view.state.storedMarks || $cursor.marks()))
+        if ($cursor) {
             view.dispatch(view.state.tr.removeStoredMark(markType));
-        else
-            view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
-    } else {
-        for (let i = 0; i < ranges.length; i++) {
-            let { $from, $to } = ranges[i];
-            
-            let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
-            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
-            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
-            if (from + spaceStart < to) {
-                from += spaceStart;
-                to -= spaceEnd;
+            if (style) {
+                view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
             }
-            tr.addMark(from, to, markType.create(attrs));
+        } else {
+            const tr = view.state.tr;
+            for (let i = 0; i < ranges.length; i++) {
+                let { $from, $to } = ranges[i];
+                let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+                let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+                let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+                if (from + spaceStart < to) {
+                    from += spaceStart;
+                    to -= spaceEnd;
+                }
+                tr.removeMark(from, to, markType);
+                if (style) {
+                    tr.addMark(from, to, markType.create(attrs));
+                }
+            }
+            view.dispatch(tr.scrollIntoView());
         }
-
-        view.dispatch(tr.scrollIntoView());
     }
-  }
 
   /**
    * Turn the format tag off and on for selection.
