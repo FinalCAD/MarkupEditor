@@ -1190,7 +1190,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
-    @objc public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil) {
+    @objc public func setColor(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil) {
         color(foregroundColor: foregroundColor, backgroundColor: backgroundColor, handler: nil)
     }
     
