@@ -20550,29 +20550,46 @@ function splitBlockKeepMarks(state, dispatch) {
           }    }    return {};
   }
 
-  function _getSpanAttributes() {
+    function _getSpanAttributes() {
       const selection = view.state.selection;
-      const selectedNodes = [];
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isText) selectedNodes.push(node);
+      let colorSet = new Set();
+      let backgroundColorSet = new Set();
+
+      view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+        if (node.isText) {
+          node.marks
+            .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+            .forEach(mark => {
+              const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+                const [key, value] = el.split(':').map(v => v.trim());
+                if (key && value) dict[key] = value;
+                return dict;
+              }, {});
+
+              if (styles['color']) colorSet.add(styles['color']);
+              if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+            });
+        }
       });
-      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-      if (selectedNode) {
-          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.span);
-          
-          if (linkMarks.length === 1) {
-            const style = linkMarks[0].attrs.style.split(';').reduce((dict, el, index) => {
-                let [key, value] = el.split(':').map((v) => v.trim());
-                return (dict[key] = value, dict)
-            }, {});
-              return {
-                backgroundColor: style['background-color'], 
-                color: style['color']
-              };
-          }
-      }    
-      return {};
-  }
+
+      const result = {};
+
+      if (colorSet.size === 1) {
+        result.color = [...colorSet][0];
+      } else if (colorSet.size > 1) {
+          result.color = null
+//        result.color = [...colorSet]; // Info : see if we want another multi-color managment
+      }
+
+      if (backgroundColorSet.size === 1) {
+        result.backgroundColor = [...backgroundColorSet][0];
+      } else if (backgroundColorSet.size > 1) {
+          result.backgroundColor = null
+//        result.backgroundColor = [...backgroundColorSet]; // Info : see if we want another multi-color managment
+      }
+
+      return result;
+    }
 
   /**
    * Return the image attributes at the selection
