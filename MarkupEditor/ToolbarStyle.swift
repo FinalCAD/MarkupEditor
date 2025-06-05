@@ -12,12 +12,14 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
     
     static let compact = ToolbarStyle(.compact)
     static let labeled = ToolbarStyle(.labeled)
+    static let custom = ToolbarStyle(.custom)
     
     var style: Style
 
     public enum Style {
         case compact
         case labeled
+        case custom
     }
     
     public init(_ style: Style = .labeled) {
@@ -34,6 +36,8 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             }
         case .labeled:
             return 69
+        case .custom:
+            return 49
         }
     }
     
@@ -45,7 +49,7 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             } else {
                 return 34
             }
-        case .labeled:
+        case .labeled, .custom:
             return 30
         }
     }
@@ -58,7 +62,7 @@ public class ToolbarStyle: @unchecked Sendable, ObservableObject {
             } else {
                 return .large
             }
-        case .labeled:
+        case .labeled, .custom:
             return .large
         }
     }

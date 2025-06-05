@@ -21,7 +21,7 @@ public struct LabeledToolbar<Content: View>: View {
     
     public var body: some View {
         switch toolbarStyle.style {
-        case .labeled:
+        case .labeled, .custom:
             VStack(spacing: 2) {
                 label
                     .font(.system(size: 10, weight: .light))
