@@ -20555,38 +20555,46 @@ function splitBlockKeepMarks(state, dispatch) {
       let colorSet = new Set();
       let backgroundColorSet = new Set();
 
-      view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
-        if (node.isText) {
-          node.marks
-            .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
-            .forEach(mark => {
-              const styles = mark.attrs.style.split(';').reduce((dict, el) => {
-                const [key, value] = el.split(':').map(v => v.trim());
-                if (key && value) dict[key] = value;
-                return dict;
-              }, {});
+      if (selection.empty && selection.$cursor) {
+        const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
+        marks.forEach(mark => {
+          const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
+            const [key, value] = el.split(':').map(v => v.trim());
+            if (key && value) dict[key] = value;
+            return dict;
+          }, {}) || {};
 
-              if (styles['color']) colorSet.add(styles['color']);
-              if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
-            });
-        }
-      });
+          if (styles['color']) colorSet.add(styles['color']);
+          if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+        });
+      } else {
+        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (node.isText) {
+            node.marks
+              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+              .forEach(mark => {
+                const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+                  const [key, value] = el.split(':').map(v => v.trim());
+                  if (key && value) dict[key] = value;
+                  return dict;
+                }, {});
+
+                if (styles['color']) colorSet.add(styles['color']);
+                if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+              });
+          }
+        });
+      }
 
       const result = {};
 
-      if (colorSet.size === 1) {
-        result.color = [...colorSet][0];
-      } else if (colorSet.size > 1) {
-          result.color = null
-//        result.color = [...colorSet]; // Info : see if we want another multi-color managment
-      }
+      result.color = colorSet.size === 1
+        ? [...colorSet][0]
+        : (colorSet.size > 1 ? null : undefined);
 
-      if (backgroundColorSet.size === 1) {
-        result.backgroundColor = [...backgroundColorSet][0];
-      } else if (backgroundColorSet.size > 1) {
-          result.backgroundColor = null
-//        result.backgroundColor = [...backgroundColorSet]; // Info : see if we want another multi-color managment
-      }
+      result.backgroundColor = backgroundColorSet.size === 1
+        ? [...backgroundColorSet][0]
+        : (backgroundColorSet.size > 1 ? null : undefined);
 
       return result;
     }
