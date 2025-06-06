@@ -19778,44 +19778,42 @@ function splitBlockKeepMarks(state, dispatch) {
       _toggleFormat('SUP');
   }
 
-  function setColor(color, backgroundColor) {
-    const markType = view.state.schema.marks.span;
+    function setColor(color, backgroundColor) {
+        const markType = view.state.schema.marks.span;
 
-    var style = "";
-    if (!!backgroundColor) {
-        style += `background-color: ${backgroundColor};`;
-    }
-    if (!!color){
-        style += `color: ${color};`;
-    }
+        let styleParts = [];
+        if (color) styleParts.push(`color: ${color}`);
+        if (backgroundColor) styleParts.push(`background-color: ${backgroundColor}`);
+        const style = styleParts.join('; ');
+        const attrs = { style };
 
-    const attrs = {style};
+        const { selection } = view.state;
+        const { $cursor, ranges } = selection;
 
-    const {doc, selection, tr} = view.state;
-    let { empty, $cursor, ranges } = selection;
-
-    if ($cursor) {
-        if (markType.isInSet(view.state.storedMarks || $cursor.marks()))
+        if ($cursor) {
             view.dispatch(view.state.tr.removeStoredMark(markType));
-        else
-            view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
-    } else {
-        for (let i = 0; i < ranges.length; i++) {
-            let { $from, $to } = ranges[i];
-            
-            let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
-            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
-            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
-            if (from + spaceStart < to) {
-                from += spaceStart;
-                to -= spaceEnd;
+            if (style) {
+                view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
             }
-            tr.addMark(from, to, markType.create(attrs));
+        } else {
+            const tr = view.state.tr;
+            for (let i = 0; i < ranges.length; i++) {
+                let { $from, $to } = ranges[i];
+                let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+                let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+                let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+                if (from + spaceStart < to) {
+                    from += spaceStart;
+                    to -= spaceEnd;
+                }
+                tr.removeMark(from, to, markType);
+                if (style) {
+                    tr.addMark(from, to, markType.create(attrs));
+                }
+            }
+            view.dispatch(tr.scrollIntoView());
         }
-
-        view.dispatch(tr.scrollIntoView());
     }
-  }
 
   /**
    * Turn the format tag off and on for selection.
@@ -20552,29 +20550,54 @@ function splitBlockKeepMarks(state, dispatch) {
           }    }    return {};
   }
 
-  function _getSpanAttributes() {
+    function _getSpanAttributes() {
       const selection = view.state.selection;
-      const selectedNodes = [];
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isText) selectedNodes.push(node);
-      });
-      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-      if (selectedNode) {
-          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.span);
-          
-          if (linkMarks.length === 1) {
-            const style = linkMarks[0].attrs.style.split(';').reduce((dict, el, index) => {
-                let [key, value] = el.split(':').map((v) => v.trim());
-                return (dict[key] = value, dict)
-            }, {});
-              return {
-                backgroundColor: style['background-color'], 
-                color: style['color']
-              };
+      let colorSet = new Set();
+      let backgroundColorSet = new Set();
+
+      if (selection.empty && selection.$cursor) {
+        const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
+        marks.forEach(mark => {
+          const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
+            const [key, value] = el.split(':').map(v => v.trim());
+            if (key && value) dict[key] = value;
+            return dict;
+          }, {}) || {};
+
+          if (styles['color']) colorSet.add(styles['color']);
+          if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+        });
+      } else {
+        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (node.isText) {
+            node.marks
+              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+              .forEach(mark => {
+                const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+                  const [key, value] = el.split(':').map(v => v.trim());
+                  if (key && value) dict[key] = value;
+                  return dict;
+                }, {});
+
+                if (styles['color']) colorSet.add(styles['color']);
+                if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+              });
           }
-      }    
-      return {};
-  }
+        });
+      }
+
+      const result = {};
+
+      result.color = colorSet.size === 1
+        ? [...colorSet][0]
+        : (colorSet.size > 1 ? null : undefined);
+
+      result.backgroundColor = backgroundColorSet.size === 1
+        ? [...backgroundColorSet][0]
+        : (backgroundColorSet.size > 1 ? null : undefined);
+
+      return result;
+    }
 
   /**
    * Return the image attributes at the selection
