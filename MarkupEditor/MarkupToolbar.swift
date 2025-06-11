@@ -41,9 +41,7 @@ public struct MarkupToolbar: View {
     var customToolbarView: some View {
         if let overrideToolbar = MarkupEditor.overrideToolbar {
             HStack {
-                Spacer()
                 overrideToolbar
-                Spacer()
             }
         }
     }
@@ -84,7 +82,7 @@ public struct MarkupToolbar: View {
             HStack {
                 content
                     .environmentObject(toolbarStyle)
-                    .padding(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                    .padding(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
                     .disabled(observedWebView.selectedWebView == nil || !selectionState.isValid || searchActive.value)
                     .onTapGesture {}    // To make the buttons responsive inside of the ScrollView
                 if withKeyboardButton {
