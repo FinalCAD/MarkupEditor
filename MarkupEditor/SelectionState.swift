@@ -128,6 +128,8 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
           link: \(linkString())
           image: \(imageString())
           table: \(tableString())
+          foregroundColor: \(foregroundColor?.description ?? "none")
+          backgroundColor: \(backgroundColor?.description ?? "none")
         """ : "invalid, divid: \(divid ?? "none")"
     }
     

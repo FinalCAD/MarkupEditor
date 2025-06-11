@@ -20550,29 +20550,54 @@ function splitBlockKeepMarks(state, dispatch) {
           }    }    return {};
   }
 
-  function _getSpanAttributes() {
+    function _getSpanAttributes() {
       const selection = view.state.selection;
-      const selectedNodes = [];
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isText) selectedNodes.push(node);
-      });
-      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-      if (selectedNode) {
-          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.span);
-          
-          if (linkMarks.length === 1) {
-            const style = linkMarks[0].attrs.style.split(';').reduce((dict, el, index) => {
-                let [key, value] = el.split(':').map((v) => v.trim());
-                return (dict[key] = value, dict)
-            }, {});
-              return {
-                backgroundColor: style['background-color'], 
-                color: style['color']
-              };
+      let colorSet = new Set();
+      let backgroundColorSet = new Set();
+
+      if (selection.empty && selection.$cursor) {
+        const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
+        marks.forEach(mark => {
+          const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
+            const [key, value] = el.split(':').map(v => v.trim());
+            if (key && value) dict[key] = value;
+            return dict;
+          }, {}) || {};
+
+          if (styles['color']) colorSet.add(styles['color']);
+          if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+        });
+      } else {
+        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (node.isText) {
+            node.marks
+              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+              .forEach(mark => {
+                const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+                  const [key, value] = el.split(':').map(v => v.trim());
+                  if (key && value) dict[key] = value;
+                  return dict;
+                }, {});
+
+                if (styles['color']) colorSet.add(styles['color']);
+                if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+              });
           }
-      }    
-      return {};
-  }
+        });
+      }
+
+      const result = {};
+
+      result.color = colorSet.size === 1
+        ? [...colorSet][0]
+        : (colorSet.size > 1 ? null : undefined);
+
+      result.backgroundColor = backgroundColorSet.size === 1
+        ? [...backgroundColorSet][0]
+        : (backgroundColorSet.size > 1 ? null : undefined);
+
+      return result;
+    }
 
   /**
    * Return the image attributes at the selection
