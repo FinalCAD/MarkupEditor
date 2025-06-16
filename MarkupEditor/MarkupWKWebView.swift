@@ -1323,7 +1323,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     
     //MARK: Styling
     
-    @objc public func pStyle(sender: UICommand) {
+    @objc public func pStyle() {
         replaceStyle(selectionState.style, with: .P)
     }
     
