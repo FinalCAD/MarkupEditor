@@ -88,12 +88,14 @@ extension UIColor {
     }
     
     func toWebRgb() -> String {
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0
-        getRed(&r, green: &g, blue: &b, alpha: nil)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        getRed(&r, green: &g, blue: &b, alpha: &a)
         let rInt = Int(r * 255)
         let gInt = Int(g * 255)
         let bInt = Int(b * 255)
+        let aStr = String(format: "%.2f", a)
         
-        return "rgb(\(rInt),\(gInt),\(bInt))"
+        print("UIColor toWebRgb rgba(\(rInt),\(gInt),\(bInt),\(aStr))")
+        return "rgba(\(rInt),\(gInt),\(bInt),\(aStr))"
     }
 }
