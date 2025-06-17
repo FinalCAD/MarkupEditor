@@ -19822,49 +19822,37 @@ function splitBlockKeepMarks(state, dispatch) {
       const markType = view.state.schema.marks.span;
       const { state, dispatch } = view;
       const { selection, tr } = state;
-      const { empty, $cursor, ranges } = selection;
+      const { ranges } = selection;
 
-      const newStyle = `text-align: ${alignment};`;
-      const cleanStyle = (styleStr) => {
-        return styleStr
-          .split(';')
-          .map(s => s.trim())
-          .filter(s => !!s && !s.startsWith("text-align"))
-          .join('; ');
-      };
+      for (let i = 0; i < ranges.length; i++) {
+        const { $from, $to } = ranges[i];
 
-      if ($cursor) {
-        let marks = state.storedMarks || $cursor.marks();
-        let existing = markType.isInSet(marks);
+        state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+          if (!node.isText) return;
 
-        if (existing) {
-          dispatch(tr.removeStoredMark(markType));
-          let clean = cleanStyle(existing.attrs.style);
-          dispatch(tr.addStoredMark(markType.create({ style: clean + (clean ? '; ' : '') + newStyle })));
-        } else {
-          dispatch(tr.addStoredMark(markType.create({ style: newStyle })));
-        }
-      } else {
-        for (let i = 0; i < ranges.length; i++) {
-          const { $from, $to } = ranges[i];
-
-          state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-            if (!node.isText) return;
-            node.marks.forEach(mark => {
-              if (mark.type === markType && mark.attrs?.style?.includes("text-align")) {
-                const cleaned = cleanStyle(mark.attrs.style);
-                tr.removeMark(pos, pos + node.nodeSize, markType);
-                if (cleaned) {
-                  tr.addMark(pos, pos + node.nodeSize, markType.create({ style: cleaned }));
-                }
-              }
-            });
+          const baseStyles = {};
+          node.marks.forEach(mark => {
+            if (mark.type === markType && mark.attrs?.style) {
+              mark.attrs.style.split(";").forEach(pair => {
+                const [k, v] = pair.split(":").map(s => s.trim());
+                if (k && v && k !== "text-align") baseStyles[k] = v;
+              });
+            }
           });
 
-          tr.addMark($from.pos, $to.pos, markType.create({ style: newStyle }));
-        }
-        dispatch(tr.scrollIntoView());
+          baseStyles["text-align"] = alignment;
+          const finalStyle = Object.entries(baseStyles).map(([k, v]) => `${k}: ${v}`).join("; ");
+
+          node.marks.forEach(mark => {
+            if (mark.type === markType) {
+              tr.removeMark(pos, pos + node.nodeSize, markType);
+            }
+          });
+
+          tr.addMark(pos, pos + node.nodeSize, markType.create({ style: finalStyle }));
+        });
       }
+      dispatch(tr.scrollIntoView());
     }
 
 
