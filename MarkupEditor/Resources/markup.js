@@ -19814,6 +19814,59 @@ function splitBlockKeepMarks(state, dispatch) {
             view.dispatch(tr.scrollIntoView());
         }
     }
+    
+    function setTextAlignment(alignment) {
+      const validAlignments = ["left", "center", "right", "justify"];
+      if (!validAlignments.includes(alignment)) return;
+
+      const markType = view.state.schema.marks.span;
+      const { state, dispatch } = view;
+      const { selection, tr } = state;
+      const { empty, $cursor, ranges } = selection;
+
+      const newStyle = `text-align: ${alignment};`;
+      const cleanStyle = (styleStr) => {
+        return styleStr
+          .split(';')
+          .map(s => s.trim())
+          .filter(s => !!s && !s.startsWith("text-align"))
+          .join('; ');
+      };
+
+      if ($cursor) {
+        let marks = state.storedMarks || $cursor.marks();
+        let existing = markType.isInSet(marks);
+
+        if (existing) {
+          dispatch(tr.removeStoredMark(markType));
+          let clean = cleanStyle(existing.attrs.style);
+          dispatch(tr.addStoredMark(markType.create({ style: clean + (clean ? '; ' : '') + newStyle })));
+        } else {
+          dispatch(tr.addStoredMark(markType.create({ style: newStyle })));
+        }
+      } else {
+        for (let i = 0; i < ranges.length; i++) {
+          const { $from, $to } = ranges[i];
+
+          state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+            if (!node.isText) return;
+            node.marks.forEach(mark => {
+              if (mark.type === markType && mark.attrs?.style?.includes("text-align")) {
+                const cleaned = cleanStyle(mark.attrs.style);
+                tr.removeMark(pos, pos + node.nodeSize, markType);
+                if (cleaned) {
+                  tr.addMark(pos, pos + node.nodeSize, markType.create({ style: cleaned }));
+                }
+              }
+            });
+          });
+
+          tr.addMark($from.pos, $to.pos, markType.create({ style: newStyle }));
+        }
+        dispatch(tr.scrollIntoView());
+      }
+    }
+
 
   /**
    * Turn the format tag off and on for selection.
@@ -21911,6 +21964,7 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.toggleItalic = toggleItalic;
   exports.toggleListItem = toggleListItem;
   exports.setColor = setColor;
+  exports.setTextAlignment = setTextAlignment;
   exports.rike = rike;
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;

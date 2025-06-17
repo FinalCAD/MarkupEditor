@@ -1196,7 +1196,18 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     
     public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil, handler: (()->Void)? = nil) {
         evaluateJavaScript("MU.setColor('\(foregroundColor?.toWebRgb() ?? "")', '\(backgroundColor?.toWebRgb() ?? "")')") { result, error in
-            print("\(result) \(error)")
+            print("color : \(result) \(error)")
+            handler?()
+        }
+    }
+    
+    @objc public func setTextAlignment(alignment: String) {
+        textAlignment(alignment: alignment, handler: nil)
+    }
+    
+    public func textAlignment(alignment: String, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.setTextAlignment('\(alignment)')") { result, error in
+            print("textAlignment : \(result) \(error)")
             handler?()
         }
     }
