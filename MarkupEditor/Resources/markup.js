@@ -19815,6 +19815,7 @@ function splitBlockKeepMarks(state, dispatch) {
         }
     }
     
+    // Apply text alignment (left, center, right, justify) using a span mark
     function setTextAlignment(alignment) {
       const validAlignments = ["left", "center", "right", "justify"];
       if (!validAlignments.includes(alignment)) return;
@@ -19824,12 +19825,14 @@ function splitBlockKeepMarks(state, dispatch) {
       const { selection, tr } = state;
       const { ranges } = selection;
 
+      // Apply only when text is selected
       for (let i = 0; i < ranges.length; i++) {
         const { $from, $to } = ranges[i];
 
         state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
           if (!node.isText) return;
 
+          // Extract existing styles except text-align
           const baseStyles = {};
           node.marks.forEach(mark => {
             if (mark.type === markType && mark.attrs?.style) {
@@ -19840,21 +19843,25 @@ function splitBlockKeepMarks(state, dispatch) {
             }
           });
 
+          // Merge with new alignment
           baseStyles["text-align"] = alignment;
           const finalStyle = Object.entries(baseStyles).map(([k, v]) => `${k}: ${v}`).join("; ");
 
+          // Remove only the previous span mark (not others like strong/em)
           node.marks.forEach(mark => {
             if (mark.type === markType) {
               tr.removeMark(pos, pos + node.nodeSize, markType);
             }
           });
 
-          tr.addMark(pos, pos + node.nodeSize, markType.create({ style: finalStyle }));
+          // Reapply the span mark with the merged styles
+          if (finalStyle.trim()) {
+            tr.addMark(pos, pos + node.nodeSize, markType.create({ style: finalStyle }));
+          }
         });
       }
       dispatch(tr.scrollIntoView());
     }
-
 
   /**
    * Turn the format tag off and on for selection.
