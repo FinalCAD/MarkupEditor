@@ -20502,6 +20502,10 @@ function splitBlockKeepMarks(state, dispatch) {
       const {backgroundColor, color} = _getSpanAttributes();
       state['backgroundColor'] = backgroundColor;
       state['color'] = color;
+      
+      const textAlign = _getTextAlignment();
+      state['textAlign'] = textAlign;
+      
       return state;
   };
 
@@ -20646,6 +20650,37 @@ function splitBlockKeepMarks(state, dispatch) {
 
       return result;
     }
+    
+    // Traverse selected text nodes and collect 'text-align' values from span marks
+    function _getTextAlignment() {
+      const selection = view.state.selection;
+      const alignSet = new Set();
+
+      if (!selection.empty) {
+        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (node.isText) {
+            node.marks
+              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+              .forEach(mark => {
+                const styles = mark.attrs.style.split(";").reduce((dict, el) => {
+                  const [key, value] = el.split(":").map(v => v.trim());
+                  if (key && value) dict[key] = value;
+                  return dict;
+                }, {});
+                if (styles["text-align"]) {
+                  alignSet.add(styles["text-align"]);
+                }
+              });
+          }
+        });
+      }
+
+      if (alignSet.size === 1) {
+        return [...alignSet][0];
+      }
+        return null
+    }
+
 
   /**
    * Return the image attributes at the selection
