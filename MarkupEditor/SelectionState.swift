@@ -50,6 +50,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
     @Published public var sub: Bool = false
     @Published public var sup: Bool = false
     @Published public var code: Bool = false
+    @Published public var textAlign: String = "left"
     
     // Colors
     @Published public var foregroundColor: UIColor? = nil
@@ -130,6 +131,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
           table: \(tableString())
           foregroundColor: \(foregroundColor?.description ?? "none")
           backgroundColor: \(backgroundColor?.description ?? "none")
+          textAlign: \(textAlign)
         """ : "invalid, divid: \(divid ?? "none")"
     }
     
@@ -170,6 +172,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
         code = selectionState?.code ?? false
         backgroundColor = selectionState?.backgroundColor
         foregroundColor = selectionState?.foregroundColor
+        textAlign = selectionState?.textAlign ?? "left"
     }
     
     func formatString() -> String {
