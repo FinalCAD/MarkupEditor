@@ -1308,17 +1308,23 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         selectionState.code = stateDictionary["code"] as? Bool ?? false
         
         selectionState.foregroundColor = if let rawColor = stateDictionary["color"] as? String, rawColor.isEmpty == false {
-            try? UIColor(rgba: rawColor)
+            rawColor
         } else {
             nil
         }
         
         selectionState.backgroundColor = if let rawColor = stateDictionary["backgroundColor"] as? String, rawColor.isEmpty == false {
-            try? UIColor(rgba: rawColor)
+            rawColor
         } else {
             nil
         }
         
+        if let textAlign = stateDictionary["text-align"] as? String {
+            selectionState.textAlign = textAlign
+        } else {
+            selectionState.textAlign = "left"
+        }
+
         return selectionState
     }
     
