@@ -53,8 +53,8 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
     @Published public var textAlign: String = "left"
     
     // Colors
-    @Published public var foregroundColor: UIColor? = nil
-    @Published public var backgroundColor: UIColor? = nil
+    @Published public var foregroundColor: String? = nil
+    @Published public var backgroundColor: String? = nil
     
     //MARK: Source rect for popovers
     public var sourceRect: CGRect? {
@@ -129,8 +129,8 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
           link: \(linkString())
           image: \(imageString())
           table: \(tableString())
-          foregroundColor: \(foregroundColor?.description ?? "none")
-          backgroundColor: \(backgroundColor?.description ?? "none")
+          foregroundColor: \(foregroundColor ?? "none")
+          backgroundColor: \(backgroundColor ?? "none")
           textAlign: \(textAlign)
         """ : "invalid, divid: \(divid ?? "none")"
     }

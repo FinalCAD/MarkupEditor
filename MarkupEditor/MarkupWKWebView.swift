@@ -1190,12 +1190,12 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
-    @objc public func setColor(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil) {
+    @objc public func setColor(foregroundColor: String? = nil, backgroundColor: String? = nil) {
         color(foregroundColor: foregroundColor, backgroundColor: backgroundColor, handler: nil)
     }
     
-    public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil, handler: (()->Void)? = nil) {
-        evaluateJavaScript("MU.setColor('\(foregroundColor?.toWebRgb() ?? "")', '\(backgroundColor?.toWebRgb() ?? "")')") { result, error in
+    public func color(foregroundColor: String? = nil, backgroundColor: String? = nil, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.setColor('\(foregroundColor ?? "")', '\(backgroundColor ?? "")')") { result, error in
             print("color : \(result) \(error)")
             handler?()
         }
