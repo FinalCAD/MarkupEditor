@@ -67,29 +67,29 @@ public struct FormatToolbar: View {
                 )
             }
             
-            if contents.foregroundColor {
-                ToolbarColorButton(color: .init(get: {
-                    Color(selectionState.foregroundColor ?? .clear)
-                }, set: {
-                    selectionState.foregroundColor = UIColor($0)
-                    observedWebView.selectedWebView?.color(
-                        foregroundColor: selectionState.foregroundColor,
-                        backgroundColor: selectionState.backgroundColor
-                    )
-                }))
-            }
-            
-            if contents.backgroundColor {
-                ToolbarColorButton(color: .init(get: {
-                    Color(selectionState.backgroundColor ?? .clear)
-                }, set: {
-                    selectionState.backgroundColor = UIColor($0)
-                    observedWebView.selectedWebView?.color(
-                        foregroundColor: selectionState.foregroundColor,
-                        backgroundColor: selectionState.backgroundColor
-                    )
-                }))
-            }
+//            if contents.foregroundColor {
+//                ToolbarColorButton(color: .init(get: {
+//                    selectionState.foregroundColor
+//                }, set: {
+//                    selectionState.foregroundColor = $0
+//                    observedWebView.selectedWebView?.color(
+//                        foregroundColor: selectionState.foregroundColor,
+//                        backgroundColor: selectionState.backgroundColor
+//                    )
+//                }))
+//            }
+//            
+//            if contents.backgroundColor {
+//                ToolbarColorButton(color: .init(get: {
+//                    Color(selectionState.backgroundColor ?? .clear)
+//                }, set: {
+//                    selectionState.backgroundColor = UIColor($0)
+//                    observedWebView.selectedWebView?.color(
+//                        foregroundColor: selectionState.foregroundColor,
+//                        backgroundColor: selectionState.backgroundColor
+//                    )
+//                }))
+//            }
             
         }
     }
