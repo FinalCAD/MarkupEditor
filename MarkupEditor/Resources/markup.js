@@ -19847,9 +19847,12 @@ function splitBlockKeepMarks(state, dispatch) {
           baseStyles["text-align"] = alignment;
           const finalStyle = Object.entries(baseStyles).map(([k, v]) => `${k}: ${v}`).join("; ");
 
-          // Remove only the previous span mark (not others like strong/em)
+          // Remove only the previous span marks that have text-align (not others like strong/em)
           node.marks.forEach(mark => {
-            if (mark.type === markType) {
+            if (
+              mark.type === markType &&
+              mark.attrs?.style?.includes("text-align")
+            ) {
               tr.removeMark(pos, pos + node.nodeSize, markType);
             }
           });
@@ -19862,6 +19865,7 @@ function splitBlockKeepMarks(state, dispatch) {
       }
       dispatch(tr.scrollIntoView());
     }
+
 
   /**
    * Turn the format tag off and on for selection.
