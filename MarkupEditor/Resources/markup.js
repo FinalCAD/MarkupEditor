@@ -19834,35 +19834,29 @@ function splitBlockKeepMarks(state, dispatch) {
     }
     
     // TODO : ajouter les h1 et ul li
-    function setTextAlignment(align) {
-        return function(state, dispatch) {
-            const { from, to } = state.selection;
-            let tr = state.tr;
-            let modified = false;
+    function setTextAlignment(align, state = view.state, dispatch = view.dispatch) {
+        const { from, to } = state.selection;
+        let tr = state.tr;
+        let modified = false;
 
-            state.doc.nodesBetween(from, to, (node, pos) => {
-                if (node.type.name === "paragraph") {
-                    const currentAlign = node.attrs.align || "left";
-                    if (currentAlign !== align) {
-                        tr = tr.setNodeMarkup(pos, undefined, {
-                            ...node.attrs,
-                            align: align
-                        });
-                        modified = true;
-                    }
+        state.doc.nodesBetween(from, to, (node, pos) => {
+            if (node.type.name === "paragraph") {
+                const currentAlign = node.attrs.align || "left";
+                if (currentAlign !== align) {
+                    tr = tr.setNodeMarkup(pos, undefined, {
+                        ...node.attrs,
+                        align: align
+                    });
+                    modified = true;
                 }
-            });
-
-            if (modified && dispatch) {
-                dispatch(tr.scrollIntoView());
-                stateChanged();
-                return true;
             }
+        });
 
-            return false;
-        };
+        if (modified && dispatch) {
+            dispatch(tr.scrollIntoView());
+            stateChanged();
+        }
     }
-
 
   /**
    * Turn the format tag off and on for selection.
