@@ -14407,41 +14407,15 @@
               };
             }
           }],
-//      toDOM() { return pDOM }
         toDOM(node) {
           const { align } = node.attrs;
           const attrs = {};
-          // On n'ajoute pas de style si c'est "left" (valeur par défaut)
           if (align && align !== "left") {
             attrs.style = `text-align: ${align}`;
           }
           return ["p", attrs, 0];
         }
     },
-      
-//      paragraph: {
-//          content: "inline*",
-//          group: "block",
-////          attrs: { align: { default: "left" } },
-//          parseDOM: [{
-//              tag: "p",
-////              getAttrs(dom) {
-////                const align = dom.style?.textAlign?.trim();
-////                return {
-////                  align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
-////                };
-////              }
-//          }],
-//          toDOM(node) {
-////            const { align } = node.attrs;
-////            const attrs = {};
-////            if (align && align !== "left") {
-////              attrs.style = `text-align: ${align}`;
-////            }
-//              return ["p", 0]
-////            return ["p", attrs, 0];
-//          }
-//      }
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
@@ -19860,7 +19834,7 @@ function splitBlockKeepMarks(state, dispatch) {
     }
     
     // TODO : ajouter les h1 et ul li
-    function setTextAlign(align) {
+    function setTextAlignment(align) {
         return function(state, dispatch) {
             const { from, to } = state.selection;
             let tr = state.tr;
