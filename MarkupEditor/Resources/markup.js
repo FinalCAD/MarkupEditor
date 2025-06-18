@@ -14398,7 +14398,6 @@
       content: "inline*",
       group: "block",
       attrs: { align: { default: "left" } },
-//      parseDOM: [{tag: "p"}],
         parseDOM: [{
             tag: "p",
             getAttrs(dom) {
@@ -14408,7 +14407,16 @@
               };
             }
           }],
-      toDOM() { return pDOM }
+//      toDOM() { return pDOM }
+        toDOM(node) {
+          const { align } = node.attrs;
+          const attrs = {};
+          // On n'ajoute pas de style si c'est "left" (valeur par défaut)
+          if (align && align !== "left") {
+            attrs.style = `text-align: ${align}`;
+          }
+          return ["p", attrs, 0];
+        }
     },
       
 //      paragraph: {
