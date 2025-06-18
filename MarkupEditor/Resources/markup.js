@@ -14414,7 +14414,7 @@
       attrs: { ...ALIGNABLE_BLOCK.attrs },
       parseDOM: [{ tag: "p", getAttrs: ALIGNABLE_BLOCK.getAttrs }],
       toDOM: node => ["p", ALIGNABLE_BLOCK.getStyle(node), 0]
-    }
+    },
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
