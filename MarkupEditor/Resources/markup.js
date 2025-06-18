@@ -14137,11 +14137,21 @@
   /**
   A list item (`<li>`) spec.
   */
-  const listItem = {
-      parseDOM: [{ tag: "li" }],
-      toDOM() { return liDOM; },
-      defining: true
-  };
+    const listItem = {
+      content: "paragraph block*",
+      defining: true,
+      attrs: {
+        ...ALIGNABLE_BLOCK.attrs
+      },
+      parseDOM: [{
+        tag: "li",
+        getAttrs: ALIGNABLE_BLOCK.getAttrs
+      }],
+      toDOM(node) {
+        return ["li", ALIGNABLE_BLOCK.getStyle(node), 0];
+      }
+    };
+
   function add(obj, props) {
       let copy = {};
       for (let prop in obj)
@@ -19842,17 +19852,52 @@ function splitBlockKeepMarks(state, dispatch) {
         let modified = false;
 
         state.doc.nodesBetween(from, to, (node, pos) => {
-            if (ALIGNABLE_TYPES.includes(node.type.name)) {
-                const currentAlign = node.attrs.align || "left";
-                if (currentAlign !== align) {
-                    tr = tr.setNodeMarkup(pos, undefined, {
-                        ...node.attrs,
-                        align: align
-                    });
-                    modified = true;
+            const name = node.type.name;
+
+            if (ALIGNABLE_TYPES.includes(name)) {
+                const $pos = state.doc.resolve(pos);
+                const depth = $pos.depth;
+                let hasAlignedParent = false;
+
+                // Search for list_item <li>
+                for (let d = depth; d >= 0; d--) {
+                    const parentNode = $pos.node(d);
+                    const parentPos = $pos.before(d);
+
+                    if (parentNode.type.name === "list_item") {
+                        const currentAlignLI = parentNode.attrs.align || "left";
+                        if (currentAlignLI !== align) {
+                            tr = tr.setNodeMarkup(parentPos, undefined, {
+                                ...parentNode.attrs,
+                                align: align
+                            });
+                            modified = true;
+                        }
+                        hasAlignedParent = true;
+                        break;
+                    }
+                }
+
+                // Don't align if it was done previously on a parent <li>
+                if (!hasAlignedParent) {
+                    const currentAlign = node.attrs.align || "left";
+                    if (currentAlign !== align) {
+                        tr = tr.setNodeMarkup(pos, undefined, {
+                            ...node.attrs,
+                            align: align
+                        });
+                        modified = true;
+                    }
                 }
             }
         });
+
+        if (modified && dispatch) {
+            dispatch(tr.scrollIntoView());
+            stateChanged();
+        }
+    }
+
 
         if (modified && dispatch) {
             dispatch(tr.scrollIntoView());
