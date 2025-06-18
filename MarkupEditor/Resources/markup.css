@@ -283,3 +283,8 @@ ol[style*="text-align"],
 ul[style*="text-align"] {
   list-style-position: inside;
 }
+
+ol[style*="text-align"] li,
+ul[style*="text-align"] li {
+  text-align: inherit;
+}
