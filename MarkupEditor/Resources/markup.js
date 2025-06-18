@@ -14397,6 +14397,7 @@
     paragraph: {
       content: "inline*",
       group: "block",
+      attrs: { align: { default: "left" } },
       parseDOM: [{tag: "p"}],
       toDOM() { return pDOM }
     },
