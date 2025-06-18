@@ -14385,6 +14385,20 @@
         hrDOM = ["hr"],
         preDOM = ["pre", ["code", 0]], 
         brDOM = ["br"];
+    
+    const ALIGNABLE_BLOCK = {
+        attrs: {
+            align: { default: "left" }
+        },
+        getAttrs: dom => ({
+            align: dom.style?.textAlign?.trim() || "left"
+        }),
+        getStyle: node =>
+        node.attrs.align !== "left"
+        ? { style: `text-align: ${node.attrs.align}` }
+        : {}
+    };
+    const ALIGNABLE_TYPES = ["paragraph"];
 
   let baseNodes = OrderedMap.from({
     // :: NodeSpec The top level document node.
@@ -14397,25 +14411,10 @@
     paragraph: {
       content: "inline*",
       group: "block",
-      attrs: { align: { default: "left" } },
-        parseDOM: [{
-            tag: "p",
-            getAttrs(dom) {
-              const align = dom.style?.textAlign?.trim();
-              return {
-                align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
-              };
-            }
-          }],
-        toDOM(node) {
-          const { align } = node.attrs;
-          const attrs = {};
-          if (align && align !== "left") {
-            attrs.style = `text-align: ${align}`;
-          }
-          return ["p", attrs, 0];
-        }
-    },
+      attrs: { ...ALIGNABLE_BLOCK.attrs },
+      parseDOM: [{ tag: "p", getAttrs: ALIGNABLE_BLOCK.getAttrs }],
+      toDOM: node => ["p", ALIGNABLE_BLOCK.getStyle(node), 0]
+    }
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
@@ -19833,14 +19832,13 @@ function splitBlockKeepMarks(state, dispatch) {
         stateChanged();
     }
     
-    // TODO : ajouter les h1 et ul li
     function setTextAlignment(align, state = view.state, dispatch = view.dispatch) {
         const { from, to } = state.selection;
         let tr = state.tr;
         let modified = false;
 
         state.doc.nodesBetween(from, to, (node, pos) => {
-            if (node.type.name === "paragraph") {
+            if (ALIGNABLE_TYPES.includes(node.type.name)) {
                 const currentAlign = node.attrs.align || "left";
                 if (currentAlign !== align) {
                     tr = tr.setNodeMarkup(pos, undefined, {
@@ -19856,6 +19854,25 @@ function splitBlockKeepMarks(state, dispatch) {
             dispatch(tr.scrollIntoView());
             stateChanged();
         }
+    }
+    
+    function _getTextAlignment(state = view.state) {
+        const { from, to } = state.selection;
+        let foundAlign = null;
+
+        state.doc.nodesBetween(from, to, (node) => {
+            if (ALIGNABLE_TYPES.includes(node.type.name)) {
+                const align = node.attrs.align || "left";
+                if (foundAlign === null) {
+                    foundAlign = align;
+                } else if (foundAlign !== align) {
+                    foundAlign = null;
+                    return false;
+                }
+            }
+        });
+
+        return foundAlign;
     }
 
   /**
@@ -20644,25 +20661,6 @@ function splitBlockKeepMarks(state, dispatch) {
         : (backgroundColorSet.size > 1 ? null : undefined);
 
       return result;
-    }
-        
-    function _getTextAlignment(state = view.state) {
-        const { from, to } = state.selection;
-        let foundAlign = null;
-
-        state.doc.nodesBetween(from, to, (node) => {
-            if (node.type.name === "paragraph") {
-                const align = node.attrs.align || "left";
-                if (foundAlign === null) {
-                    foundAlign = align;
-                } else if (foundAlign !== align) {
-                    foundAlign = null;
-                    return false;
-                }
-            }
-        });
-
-        return foundAlign;
     }
 
   /**
