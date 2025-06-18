@@ -1319,7 +1319,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
             nil
         }
         
-        if let textAlign = stateDictionary["text-align"] as? String {
+        if let textAlign = stateDictionary["textAlign"] as? String {
             selectionState.textAlign = textAlign
         } else {
             selectionState.textAlign = "left"

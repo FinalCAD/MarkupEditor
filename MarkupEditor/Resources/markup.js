@@ -19813,6 +19813,9 @@ function splitBlockKeepMarks(state, dispatch) {
             }
             view.dispatch(tr.scrollIntoView());
         }
+        
+        toggle(view.state, view.dispatch);
+        stateChanged();
     }
     
     // Apply text alignment (left, center, right, justify) using a span mark
@@ -19864,6 +19867,9 @@ function splitBlockKeepMarks(state, dispatch) {
         });
       }
       dispatch(tr.scrollIntoView());
+        
+      toggle(view.state, view.dispatch);
+      stateChanged();
     }
 
 
