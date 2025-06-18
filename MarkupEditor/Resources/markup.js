@@ -14407,12 +14407,12 @@
           attrs: { align: { default: "left" } },
           parseDOM: [{
               tag: "p",
-              getAttrs(dom) {
-                const align = dom.style?.textAlign?.trim();
-                return {
-                  align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
-                };
-              }
+//              getAttrs(dom) {
+//                const align = dom.style?.textAlign?.trim();
+//                return {
+//                  align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
+//                };
+//              }
           }],
           toDOM(node) {
             const { align } = node.attrs;
