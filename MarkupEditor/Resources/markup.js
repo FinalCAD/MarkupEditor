@@ -14420,7 +14420,8 @@
             if (align && align !== "left") {
               attrs.style = `text-align: ${align}`;
             }
-            return ["p", attrs, 0];
+              return ["p", 0];
+//            return ["p", attrs, 0];
           }
       }
 
