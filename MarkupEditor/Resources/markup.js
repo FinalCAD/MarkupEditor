@@ -20645,37 +20645,25 @@ function splitBlockKeepMarks(state, dispatch) {
 
       return result;
     }
-    
-    // Traverse selected text nodes and collect 'text-align' values from span marks
-    function _getTextAlignment() {
-      const selection = view.state.selection;
-      const alignSet = new Set();
+        
+    function _getTextAlignment(state = view.state) {
+        const { from, to } = state.selection;
+        let foundAlign = null;
 
-      if (!selection.empty) {
-        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
-          if (node.isText) {
-            node.marks
-              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
-              .forEach(mark => {
-                const styles = mark.attrs.style.split(";").reduce((dict, el) => {
-                  const [key, value] = el.split(":").map(v => v.trim());
-                  if (key && value) dict[key] = value;
-                  return dict;
-                }, {});
-                if (styles["text-align"]) {
-                  alignSet.add(styles["text-align"]);
+        state.doc.nodesBetween(from, to, (node) => {
+            if (node.type.name === "paragraph") {
+                const align = node.attrs.align || "left";
+                if (foundAlign === null) {
+                    foundAlign = align;
+                } else if (foundAlign !== align) {
+                    foundAlign = null;
+                    return false;
                 }
-              });
-          }
+            }
         });
-      }
 
-      if (alignSet.size === 1) {
-        return [...alignSet][0];
-      }
-        return null
+        return foundAlign;
     }
-
 
   /**
    * Return the image attributes at the selection
