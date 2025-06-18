@@ -14411,7 +14411,14 @@
                   align: dom.style.textAlign || "left"
               })
           }],
-          toDOM: node => ["p", { style: `text-align: ${node.attrs.align}` }, 0]
+          toDOM(node) {
+            const { align } = node.attrs;
+            const attrs = {};
+            if (align && align !== "left") {
+              attrs.style = `text-align: ${align}`;
+            }
+            return ["p", attrs, 0];
+          }
       }
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
