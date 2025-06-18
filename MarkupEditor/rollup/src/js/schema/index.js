@@ -17,32 +17,12 @@ let baseNodes = OrderedMap.from({
 
   // :: NodeSpec A plain paragraph textblock. Represented in the DOM
   // as a `<p>` element.
-//  paragraph: {
-//    content: "inline*",
-//    group: "block",
-//    parseDOM: [{tag: "p"}],
-//    toDOM() { return pDOM }
-//  },
-    paragraph: {
-        content: "inline*",
-        group: "block",
-        attrs: { align: { default: "left" } },
-//        parseDOM: [{
-//            tag: "p",
-//            getAttrs: dom => ({
-//                align: dom.style.textAlign || "left"
-//            })
-//        }],
-        parseDOM: [{tag: "p"}],
-        toDOM(node) {
-          const { align } = node.attrs;
-          const attrs = {};
-          if (align && align !== "left") {
-            attrs.style = `text-align: ${align}`;
-          }
-          return ["p", attrs, 0];
-        }
-    }
+  paragraph: {
+    content: "inline*",
+    group: "block",
+    parseDOM: [{tag: "p"}],
+    toDOM() { return pDOM }
+  },
 
   // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
   blockquote: {
