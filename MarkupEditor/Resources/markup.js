@@ -3,20 +3,6 @@
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MU = {}));
 })(this, (function (exports) { 'use strict';
-
-    const ALIGNABLE_BLOCK = {
-        attrs: {
-            align: { default: "left" }
-        },
-        getAttrs: dom => ({
-            align: dom.style?.textAlign?.trim() || "left"
-        }),
-        getStyle: node =>
-        node.attrs.align !== "left"
-        ? { style: `text-align: ${node.attrs.align}` }
-        : {}
-    };
-    const ALIGNABLE_TYPES = ["paragraph", "heading"];
     
   // ::- Persistent data structure representing an ordered mapping from
   // strings to values, with some convenient update methods.
@@ -14126,6 +14112,21 @@
   );
 
   const olDOM = ["ol", 0], ulDOM = ["ul", 0], liDOM = ["li", 0];
+    
+    const ALIGNABLE_BLOCK = {
+        attrs: {
+            align: { default: "left" }
+        },
+        getAttrs: dom => ({
+            align: dom.style?.textAlign?.trim() || "left"
+        }),
+        getStyle: node =>
+        node.attrs.align !== "left"
+        ? { style: `text-align: ${node.attrs.align}` }
+        : {}
+    };
+    const ALIGNABLE_TYPES = ["paragraph", "heading"];
+    
   /**
   An ordered list [node spec](https://prosemirror.net/docs/ref/#model.NodeSpec). Has a single
   attribute, `order`, which determines the number at which the list
