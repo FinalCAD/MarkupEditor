@@ -278,3 +278,8 @@ img {
     position: absolute;
     color: #ccc;
 }
+
+ol[style*="text-align"],
+ul[style*="text-align"] {
+  list-style-position: inside;
+}
