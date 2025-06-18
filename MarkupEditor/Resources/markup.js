@@ -4,6 +4,20 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MU = {}));
 })(this, (function (exports) { 'use strict';
 
+    const ALIGNABLE_BLOCK = {
+        attrs: {
+            align: { default: "left" }
+        },
+        getAttrs: dom => ({
+            align: dom.style?.textAlign?.trim() || "left"
+        }),
+        getStyle: node =>
+        node.attrs.align !== "left"
+        ? { style: `text-align: ${node.attrs.align}` }
+        : {}
+    };
+    const ALIGNABLE_TYPES = ["paragraph", "heading"];
+    
   // ::- Persistent data structure representing an ordered mapping from
   // strings to values, with some convenient update methods.
   function OrderedMap(content) {
@@ -14395,20 +14409,6 @@
         hrDOM = ["hr"],
         preDOM = ["pre", ["code", 0]], 
         brDOM = ["br"];
-    
-    const ALIGNABLE_BLOCK = {
-        attrs: {
-            align: { default: "left" }
-        },
-        getAttrs: dom => ({
-            align: dom.style?.textAlign?.trim() || "left"
-        }),
-        getStyle: node =>
-        node.attrs.align !== "left"
-        ? { style: `text-align: ${node.attrs.align}` }
-        : {}
-    };
-    const ALIGNABLE_TYPES = ["paragraph", "heading"];
 
   let baseNodes = OrderedMap.from({
     // :: NodeSpec The top level document node.
