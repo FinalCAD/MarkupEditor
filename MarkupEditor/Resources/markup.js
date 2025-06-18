@@ -19898,13 +19898,6 @@ function splitBlockKeepMarks(state, dispatch) {
             stateChanged();
         }
     }
-
-
-        if (modified && dispatch) {
-            dispatch(tr.scrollIntoView());
-            stateChanged();
-        }
-    }
     
     function _getTextAlignment(state = view.state) {
         const { from, to } = state.selection;
