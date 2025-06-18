@@ -14404,7 +14404,7 @@
       paragraph: {
           content: "inline*",
           group: "block",
-          attrs: { align: { default: "left" } },
+//          attrs: { align: { default: "left" } },
           parseDOM: [{
               tag: "p",
 //              getAttrs(dom) {
