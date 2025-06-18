@@ -14394,12 +14394,25 @@
 
     // :: NodeSpec A plain paragraph textblock. Represented in the DOM
     // as a `<p>` element.
-    paragraph: {
-      content: "inline*",
-      group: "block",
-      parseDOM: [{tag: "p"}],
-      toDOM() { return pDOM }
-    },
+//    paragraph: {
+//      content: "inline*",
+//      group: "block",
+//      parseDOM: [{tag: "p"}],
+//      toDOM() { return pDOM }
+//    },
+      
+      paragraph: {
+          content: "inline*",
+          group: "block",
+          attrs: { align: { default: "left" } },
+          parseDOM: [{
+              tag: "p",
+              getAttrs: dom => ({
+                  align: dom.style.textAlign || "left"
+              })
+          }],
+          toDOM: node => ["p", { style: `text-align: ${node.attrs.align}` }, 0]
+      }
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
@@ -19813,63 +19826,38 @@ function splitBlockKeepMarks(state, dispatch) {
             }
             view.dispatch(tr.scrollIntoView());
         }
-        
-        toggle(view.state, view.dispatch);
+
         stateChanged();
     }
     
-    // Apply text alignment (left, center, right, justify) using a span mark
-    function setTextAlignment(alignment) {
-      const validAlignments = ["left", "center", "right", "justify"];
-      if (!validAlignments.includes(alignment)) return;
+    // TODO : ajouter les h1 et ul li
+    function setTextAlign(align) {
+        return function(state, dispatch) {
+            const { from, to } = state.selection;
+            let tr = state.tr;
+            let modified = false;
 
-      const markType = view.state.schema.marks.span;
-      const { state, dispatch } = view;
-      const { selection, tr } = state;
-      const { ranges } = selection;
+            state.doc.nodesBetween(from, to, (node, pos) => {
+                if (node.type.name === "paragraph") {
+                    const currentAlign = node.attrs.align || "left";
+                    if (currentAlign !== align) {
+                        tr = tr.setNodeMarkup(pos, undefined, {
+                            ...node.attrs,
+                            align: align
+                        });
+                        modified = true;
+                    }
+                }
+            });
 
-      // Apply only when text is selected
-      for (let i = 0; i < ranges.length; i++) {
-        const { $from, $to } = ranges[i];
-
-        state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-          if (!node.isText) return;
-
-          // Extract existing styles except text-align
-          const baseStyles = {};
-          node.marks.forEach(mark => {
-            if (mark.type === markType && mark.attrs?.style) {
-              mark.attrs.style.split(";").forEach(pair => {
-                const [k, v] = pair.split(":").map(s => s.trim());
-                if (k && v && k !== "text-align") baseStyles[k] = v;
-              });
+            if (modified && dispatch) {
+                dispatch(tr.scrollIntoView());
+                stateChanged();
+                return true;
             }
-          });
 
-          // Merge with new alignment
-          baseStyles["text-align"] = alignment;
-          const finalStyle = Object.entries(baseStyles).map(([k, v]) => `${k}: ${v}`).join("; ");
-
-          // Remove only the previous span marks that have text-align (not others like strong/em)
-          node.marks.forEach(mark => {
-            if (
-              mark.type === markType &&
-              mark.attrs?.style?.includes("text-align")
-            ) {
-              tr.removeMark(pos, pos + node.nodeSize, markType);
-            }
-          });
-
-          // Reapply the span mark with the merged styles
-          if (finalStyle.trim()) {
-            tr.addMark(pos, pos + node.nodeSize, markType.create({ style: finalStyle }));
-          }
-        });
-      }
-      dispatch(tr.scrollIntoView());
-        
-      toggle(view.state, view.dispatch);
-      stateChanged();
+            return false;
+        };
     }
 
 
