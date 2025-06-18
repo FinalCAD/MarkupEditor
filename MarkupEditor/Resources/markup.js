@@ -14394,36 +14394,36 @@
 
     // :: NodeSpec A plain paragraph textblock. Represented in the DOM
     // as a `<p>` element.
-//    paragraph: {
-//      content: "inline*",
-//      group: "block",
-//      parseDOM: [{tag: "p"}],
-//      toDOM() { return pDOM }
-//    },
+    paragraph: {
+      content: "inline*",
+      group: "block",
+      parseDOM: [{tag: "p"}],
+      toDOM() { return pDOM }
+    },
       
-      paragraph: {
-          content: "inline*",
-          group: "block",
-//          attrs: { align: { default: "left" } },
-          parseDOM: [{
-              tag: "p",
-//              getAttrs(dom) {
-//                const align = dom.style?.textAlign?.trim();
-//                return {
-//                  align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
-//                };
-//              }
-          }],
-          toDOM(node) {
-//            const { align } = node.attrs;
-//            const attrs = {};
-//            if (align && align !== "left") {
-//              attrs.style = `text-align: ${align}`;
-//            }
-              return ["p", 0]
-//            return ["p", attrs, 0];
-          }
-      }
+//      paragraph: {
+//          content: "inline*",
+//          group: "block",
+////          attrs: { align: { default: "left" } },
+//          parseDOM: [{
+//              tag: "p",
+////              getAttrs(dom) {
+////                const align = dom.style?.textAlign?.trim();
+////                return {
+////                  align: ["left", "right", "center", "justify"].includes(align) ? align : "left"
+////                };
+////              }
+//          }],
+//          toDOM(node) {
+////            const { align } = node.attrs;
+////            const attrs = {};
+////            if (align && align !== "left") {
+////              attrs.style = `text-align: ${align}`;
+////            }
+//              return ["p", 0]
+////            return ["p", attrs, 0];
+//          }
+//      }
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
