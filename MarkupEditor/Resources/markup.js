@@ -14436,17 +14436,21 @@
     // should hold the number 1 to 6. Parsed and serialized as `<h1>` to
     // `<h6>` elements.
     heading: {
-      attrs: {level: {default: 1}},
+        attrs: {
+            level: {default: 1},
+            ...ALIGNABLE_BLOCK.attrs
+        },
       content: "inline*",
       group: "block",
       defining: true,
-      parseDOM: [{tag: "h1", attrs: {level: 1}},
-                 {tag: "h2", attrs: {level: 2}},
-                 {tag: "h3", attrs: {level: 3}},
-                 {tag: "h4", attrs: {level: 4}},
-                 {tag: "h5", attrs: {level: 5}},
-                 {tag: "h6", attrs: {level: 6}}],
-      toDOM(node) { return ["h" + node.attrs.level, 0] }
+        parseDOM: [1, 2, 3, 4, 5, 6].map(level => ({
+            tag: `h${level}`,
+            getAttrs: dom => ({
+                level,
+                ...ALIGNABLE_BLOCK.getAttrs(dom)
+            })
+        })),
+      toDOM(node) { return ["h" + node.attrs.level, ALIGNABLE_BLOCK.getStyle(node), 0] }
     },
 
     // :: NodeSpec A code listing. Disallows marks or non-text inline
