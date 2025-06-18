@@ -14405,12 +14405,13 @@
           content: "inline*",
           group: "block",
           attrs: { align: { default: "left" } },
-          parseDOM: [{
-              tag: "p",
-              getAttrs: dom => ({
-                  align: dom.style.textAlign || "left"
-              })
-          }],
+//          parseDOM: [{
+//              tag: "p",
+//              getAttrs: dom => ({
+//                  align: dom.style.textAlign || "left"
+//              })
+//          }],
+          parseDOM: [{tag: "p"}],
           toDOM(node) {
             const { align } = node.attrs;
             const attrs = {};
