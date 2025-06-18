@@ -14398,7 +14398,7 @@
         ? { style: `text-align: ${node.attrs.align}` }
         : {}
     };
-    const ALIGNABLE_TYPES = ["paragraph"];
+    const ALIGNABLE_TYPES = ["paragraph", "heading"];
 
   let baseNodes = OrderedMap.from({
     // :: NodeSpec The top level document node.
