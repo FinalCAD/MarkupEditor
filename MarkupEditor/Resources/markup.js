@@ -19852,43 +19852,44 @@ function splitBlockKeepMarks(state, dispatch) {
         let tr = state.tr;
         let modified = false;
 
+        const ALIGNABLE_TYPES = ["paragraph", "heading", "list_item"];
+
         state.doc.nodesBetween(from, to, (node, pos) => {
             const name = node.type.name;
 
-            if (ALIGNABLE_TYPES.includes(name)) {
-                const $pos = state.doc.resolve(pos);
-                const depth = $pos.depth;
-                let hasAlignedParent = false;
+            if (pos === 0) return;
 
-                // Search for list_item <li>
-                for (let d = depth; d >= 0; d--) {
-                    const parentNode = $pos.node(d);
-                    const parentPos = $pos.before(d);
+            const $pos = state.doc.resolve(pos);
 
-                    if (parentNode.type.name === "list_item") {
-                        const currentAlignLI = parentNode.attrs.align || "left";
-                        if (currentAlignLI !== align) {
-                            tr = tr.setNodeMarkup(parentPos, undefined, {
-                                ...parentNode.attrs,
-                                align: align
-                            });
-                            modified = true;
-                        }
-                        hasAlignedParent = true;
-                        break;
-                    }
-                }
+            // Search for list_item <li>
+            let hasAlignedParent = false;
+            for (let d = $pos.depth; d >= 1; d--) {
+                const parentNode = $pos.node(d);
+                const parentPos = $pos.before(d);
 
-                // Don't align if it was done previously on a parent <li>
-                if (!hasAlignedParent) {
-                    const currentAlign = node.attrs.align || "left";
+                if (parentNode.type.name === "list_item") {
+                    const currentAlign = parentNode.attrs.align || "left";
                     if (currentAlign !== align) {
-                        tr = tr.setNodeMarkup(pos, undefined, {
-                            ...node.attrs,
+                        tr = tr.setNodeMarkup(parentPos, undefined, {
+                            ...parentNode.attrs,
                             align: align
                         });
                         modified = true;
                     }
+                    hasAlignedParent = true;
+                    break;
+                }
+            }
+
+            // Don't align if it was done previously on a parent <li>
+            if (!hasAlignedParent && ALIGNABLE_TYPES.includes(name)) {
+                const currentAlign = node.attrs.align || "left";
+                if (currentAlign !== align) {
+                    tr = tr.setNodeMarkup(pos, undefined, {
+                        ...node.attrs,
+                        align: align
+                    });
+                    modified = true;
                 }
             }
         });
