@@ -19900,6 +19900,41 @@ function splitBlockKeepMarks(state, dispatch) {
         }
     }
     
+    function toggleSelectionToLink(url) {
+      const { state, dispatch } = view;
+      const { selection, schema, tr, doc } = state;
+      const linkMarkType = schema.marks.link;
+
+      const cleanedUrl = typeof url === 'string' ? url.trim() : null;
+
+      if (selection.empty) {
+        if (!cleanedUrl) return;
+        const linkMark = linkMarkType.create({ href: cleanedUrl });
+        const textNode = schema.text(cleanedUrl, [linkMark]);
+        const transaction = tr.replaceSelectionWith(textNode, false);
+        const linkSelection = TextSelection.create(
+          transaction.doc,
+          selection.from,
+          selection.from + textNode.nodeSize
+        );
+        transaction.setSelection(linkSelection);
+        dispatch(transaction);
+      } else {
+        const selectedText = doc.textBetween(selection.from, selection.to, ' ', ' ').trim();
+        const hasLink = doc.rangeHasMark(selection.from, selection.to, linkMarkType);
+
+        if (hasLink || (!cleanedUrl && !selectedText)) {
+          dispatch(tr.removeMark(selection.from, selection.to, linkMarkType));
+        } else {
+          const finalUrl = cleanedUrl || selectedText;
+          const linkMark = linkMarkType.create({ href: finalUrl });
+          dispatch(tr.addMark(selection.from, selection.to, linkMark));
+        }
+      }
+
+      stateChanged();
+    }
+
     function _getTextAlignment(state = view.state) {
         const { from, to } = state.selection;
         let foundAlign = null;
@@ -22020,6 +22055,7 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.toggleListItem = toggleListItem;
   exports.setColor = setColor;
   exports.setTextAlignment = setTextAlignment;
+  exports.toggleSelectionToLink = toggleSelectionToLink;
   exports.rike = rike;
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;

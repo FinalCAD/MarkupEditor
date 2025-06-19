@@ -1201,6 +1201,17 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
+    @objc public func toggleSelectionToLink(link: String? = nil) {
+        toggleSelectionToLinkMU(link: link, handler: nil)
+    }
+    
+    public func toggleSelectionToLinkMU(link: String? = nil, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.toggleSelectionToLink('\(link ?? "")')") { result, error in
+            print("toggleSelectionToLink : \(result) \(error)")
+            handler?()
+        }
+    }
+    
     @objc public func setTextAlignment(alignment: String) {
         textAlignment(alignment: alignment, handler: nil)
     }
