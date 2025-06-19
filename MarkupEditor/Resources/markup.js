@@ -20679,19 +20679,43 @@ function splitBlockKeepMarks(state, dispatch) {
    * Return the link attributes at the selection.
    * @returns {Object}   An Object whose properties are <a> attributes (like href, link) at the selection.
    */
-  function _getLinkAttributes() {
-      const selection = view.state.selection;
-      const selectedNodes = [];
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isText) selectedNodes.push(node);
-      });
-      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-      if (selectedNode) {
-          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.link);
-          if (linkMarks.length === 1) {
-              return {href: linkMarks[0].attrs.href, link: selectedNode.text};
-          }    }    return {};
-  }
+    function _getLinkAttributes() {
+      const { state } = view;
+      const { selection, schema } = state;
+      const { $from, empty } = selection;
+
+      // Si c’est une sélection vide (curseur), on regarde autour
+      if (empty) {
+        const node = $from.nodeBefore || $from.nodeAfter;
+        if (node && node.isText) {
+          const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+          if (linkMark) {
+            return {
+              href: linkMark.attrs.href,
+              link: node.text
+            };
+          }
+        }
+      } else {
+        // Si du texte est sélectionné, on parcourt la sélection
+        let found = null;
+        state.doc.nodesBetween(selection.from, selection.to, (node) => {
+          if (node.isText) {
+            const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+            if (linkMark) {
+              found = {
+                href: linkMark.attrs.href,
+                link: node.text
+              };
+              return false; // Stop iteration early
+            }
+          }
+        });
+        if (found) return found;
+      }
+
+      return {};
+    }
 
     function _getSpanAttributes() {
       const selection = view.state.selection;
