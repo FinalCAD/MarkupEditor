@@ -20384,32 +20384,41 @@ function splitBlockKeepMarks(state, dispatch) {
      * Check textAlign, if = "left" then indent / outdent by default
      * if textAlign = "right" then indent / outdent in reverse
      */
-    function adjustIndent(direction = 'in') {
+    function adjustIndent(type) {
       const { state, dispatch } = view;
-      const { list_item, blockquote } = state.schema.nodes;
+      const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
 
       const rightAligned = isRightAligned(state);
+      const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
+      const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
 
-      const shouldOutdent = (direction === 'in' && rightAligned) || (direction === 'out' && !rightAligned);
-      const shouldIndent = !shouldOutdent;
+      const inList = isInList(state, bullet_list, ordered_list);
 
       if (shouldIndent) {
-        if (sinkListItem(list_item)(state, dispatch)) {
-          stateChanged();
-          return true;
+        if (inList) {
+          if (sinkListItem(list_item)(state, dispatch)) {
+            stateChanged();
+            return true;
+          }
+        } else {
+          if (wrapIn(blockquote)(state, dispatch)) {
+            stateChanged();
+            return true;
+          }
         }
-        if (wrapIn(blockquote)(state, dispatch)) {
-          stateChanged();
-          return true;
-        }
-      } else {
-        if (liftListItem(list_item)(state, dispatch)) {
-          stateChanged();
-          return true;
-        }
-        if (lift(state, dispatch)) {
-          stateChanged();
-          return true;
+      }
+
+      if (shouldOutdent) {
+        if (inList) {
+          if (liftListItem(list_item)(state, dispatch)) {
+            stateChanged();
+            return true;
+          }
+        } else {
+          if (lift(state, dispatch)) {
+            stateChanged();
+            return true;
+          }
         }
       }
 
@@ -20433,6 +20442,15 @@ function splitBlockKeepMarks(state, dispatch) {
         }
       }
 
+      return false;
+    }
+    
+    function isInList(state, ...listTypes) {
+      const { $from } = state.selection;
+      for (let d = $from.depth; d > 0; d--) {
+        const node = $from.node(d);
+        if (listTypes.includes(node.type)) return true;
+      }
       return false;
     }
 
