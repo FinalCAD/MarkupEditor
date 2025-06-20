@@ -20364,24 +20364,20 @@ function splitBlockKeepMarks(state, dispatch) {
    * Else, put into a blockquote to indent.
    *
    */
-  function indent() {
-      const selection = view.state.selection;
-      const nodeTypes = view.state.schema.nodes;
-      let newState;
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isBlock) {   
-              const command = wrapIn(nodeTypes.blockquote);
-              command(view.state, (transaction) => {
-                  newState = view.state.apply(transaction);
-              });
-              return true;
-          }        return false;
-      });
-      if (newState) {
-          view.updateState(newState);
-          stateChanged();
+    function indent() {
+      const { state, dispatch } = view;
+      const { list_item, blockquote } = state.schema.nodes;
+
+      if (sinkListItem(list_item)(state, dispatch)) {
+        stateChanged();
+        return;
       }
-  }
+
+      if (wrapIn(blockquote)(state, dispatch)) {
+        stateChanged();
+      }
+    }
+
   /**
    * Do a context-sensitive outdent.
    *
@@ -20390,32 +20386,23 @@ function splitBlockKeepMarks(state, dispatch) {
    * Else, do nothing.
    *
    */
-  function outdent() {
-      const selection = view.state.selection;
-      const blockquote = view.state.schema.nodes.blockquote;
-      const ul = view.state.schema.nodes.bullet_list;
-      const ol = view.state.schema.nodes.ordered_list;
-      let newState;
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if ((node.type == blockquote) || (node.type == ul) || (node.type == ol)) {   
-              lift(view.state, (transaction) => {
-                  // Note that some selections will not outdent, even though they
-                  // contain outdentable items. For example, multiple blockquotes 
-                  // within a selection cannot be outdented. However, multiple 
-                  // blocks (e.g., p) can be outdented within a blockquote, because
-                  // the selection is identifying the paragraphs to be outdented.
-                  newState = view.state.apply(transaction);
-              });
-          }        return true;
-      });
-      if (newState) {
-          view.updateState(newState);
-          stateChanged();
-          return true;
-      } else {
-          return false;
+    function outdent() {
+      const { state, dispatch } = view;
+      const { list_item } = state.schema.nodes;
+
+      if (liftListItem(list_item)(state, dispatch)) {
+        stateChanged();
+        return true;
       }
-  }
+
+      if (lift(state, dispatch)) {
+        stateChanged();
+        return true;
+      }
+
+      return false;
+    }
+
   /********************************************************************************
    * Deal with modal input from the Swift side
    */
