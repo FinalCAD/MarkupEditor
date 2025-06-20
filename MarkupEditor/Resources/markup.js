@@ -20365,17 +20365,7 @@ function splitBlockKeepMarks(state, dispatch) {
    *
    */
     function indent() {
-      const { state, dispatch } = view;
-      const { list_item, blockquote } = state.schema.nodes;
-
-      if (sinkListItem(list_item)(state, dispatch)) {
-        stateChanged();
-        return;
-      }
-
-      if (wrapIn(blockquote)(state, dispatch)) {
-        stateChanged();
-      }
+        return adjustIndent('in');
     }
 
   /**
@@ -20387,17 +20377,60 @@ function splitBlockKeepMarks(state, dispatch) {
    *
    */
     function outdent() {
+        return adjustIndent('out');
+    }
+  
+    /**
+     * Check textAlign, if = "left" then indent / outdent by default
+     * if textAlign = "right" then indent / outdent in reverse
+     */
+    function adjustIndent(direction = 'in') {
       const { state, dispatch } = view;
-      const { list_item } = state.schema.nodes;
+      const { list_item, blockquote } = state.schema.nodes;
 
-      if (liftListItem(list_item)(state, dispatch)) {
-        stateChanged();
-        return true;
+      const rightAligned = isRightAligned(state);
+
+      const shouldOutdent = (direction === 'in' && rightAligned) || (direction === 'out' && !rightAligned);
+      const shouldIndent = !shouldOutdent;
+
+      if (shouldIndent) {
+        if (sinkListItem(list_item)(state, dispatch)) {
+          stateChanged();
+          return true;
+        }
+        if (wrapIn(blockquote)(state, dispatch)) {
+          stateChanged();
+          return true;
+        }
+      } else {
+        if (liftListItem(list_item)(state, dispatch)) {
+          stateChanged();
+          return true;
+        }
+        if (lift(state, dispatch)) {
+          stateChanged();
+          return true;
+        }
       }
 
-      if (lift(state, dispatch)) {
-        stateChanged();
-        return true;
+      return false;
+    }
+    
+    function isRightAligned(state) {
+      const { from, $from } = state.selection;
+      const node = $from.node($from.depth);
+
+      // Look for textAlign in node attribute
+      const alignAttr = node.attrs?.align || node.attrs?.textAlign;
+      if (alignAttr === "right") return true;
+
+      // Look for textAlign in marks
+      const textNode = state.doc.nodeAt(from);
+      if (textNode && textNode.marks) {
+        for (const mark of textNode.marks) {
+          const align = mark.attrs?.align || mark.attrs?.textAlign;
+          if (align === "right") return true;
+        }
       }
 
       return false;
