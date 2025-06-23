@@ -19816,19 +19816,17 @@ function splitBlockKeepMarks(state, dispatch) {
     function syncUnderlineColorWithSpan(view) {
       const { state } = view;
       const { doc, tr } = state;
-      const underlineType = state.schema.marks.underline;
-      const spanType = state.schema.marks.span;
 
       let modified = false;
 
       doc.descendants((node, pos) => {
         if (!node.isText) return;
 
-        const spanMark = node.marks.find(m => m.type === spanType);
+        const spanMark = node.marks.find(m => m.type.name === 'span');
         if (!spanMark) return;
 
-        const underlineMark = node.marks.find(m => m.type === underlineType);
-        if (!underlineMark) return; // ✅ on ne bloque pas avant, juste ici
+        const underlineMark = node.marks.find(m => m.type.name === 'underline');
+        if (!underlineMark) return;
 
         const style = spanMark.attrs.style || '';
         const colorMatch = style.match(/color:\s*([^;]+)/);
@@ -19838,8 +19836,8 @@ function splitBlockKeepMarks(state, dispatch) {
 
         if (spanColor && spanColor !== underlineColor) {
           console.log(`[sync] pos ${pos}: ${underlineColor} → ${spanColor}`);
-          tr.removeMark(pos, pos + node.nodeSize, underlineType);
-          tr.addMark(pos, pos + node.nodeSize, underlineType.create({ color: spanColor }));
+          tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
+          tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
           modified = true;
         }
       });
