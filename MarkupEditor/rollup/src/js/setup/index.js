@@ -142,7 +142,7 @@ const placeholderPlugin = new Plugin({
   }
 })
 
-export const underlineColorSyncPlugin = new Plugin({
+const syncUnderlineColorWithSpanPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
     let tr = newState.tr;
     let modified = false;
@@ -150,33 +150,30 @@ export const underlineColorSyncPlugin = new Plugin({
     newState.doc.descendants((node, pos) => {
       if (!node.isText) return;
 
-      const underlineMark = node.marks.find(m => m.type.name === 'underline');
       const spanMark = node.marks.find(m => m.type.name === 'span');
+      if (!spanMark) return;
 
-      const currentUnderlineColor = underlineMark?.attrs?.color || null;
+      const underlineMark = node.marks.find(m => m.type.name === 'underline');
+      if (!underlineMark) return;
 
-      if (underlineMark && spanMark) {
-        const style = spanMark.attrs.style || '';
-        const colorMatch = style.match(/color:\s*([^;]+)/);
-        const spanColor = colorMatch ? colorMatch[1].trim() : null;
+      const style = spanMark.attrs.style || '';
+      const colorMatch = style.match(/color:\s*([^;]+)/);
+      const spanColor = colorMatch ? colorMatch[1].trim() : null;
 
-        if (spanColor && currentUnderlineColor !== spanColor) {
-          const updatedMark = underlineMark.type.create({ color: spanColor });
-          tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-          tr = tr.addMark(pos, pos + node.nodeSize, updatedMark);
-          modified = true;
-        }
-      }
+      const underlineColor = underlineMark.attrs?.color || null;
 
-      if (underlineMark && !spanMark && currentUnderlineColor) {
-        const cleanedMark = underlineMark.type.create({ color: null });
+      if (spanColor && spanColor !== underlineColor) {
+        console.log(`[sync plugin] pos ${pos}: ${underlineColor} → ${spanColor}`);
         tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-        tr = tr.addMark(pos, pos + node.nodeSize, cleanedMark);
+        tr = tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
         modified = true;
       }
     });
 
-    return modified ? tr : null;
+    if (modified) {
+      return tr;
+    }
+    return null;
   }
 });
 
@@ -235,7 +232,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
-//  plugins.push(underlineColorSyncPlugin)
+  plugins.push(syncUnderlineColorWithSpanPlugin)
     
   return plugins;
 }
