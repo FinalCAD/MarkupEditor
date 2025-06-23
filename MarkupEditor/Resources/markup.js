@@ -20385,44 +20385,47 @@ function splitBlockKeepMarks(state, dispatch) {
      * if textAlign = "right" then indent / outdent in reverse
      */
     function adjustIndent(type) {
-      const { state, dispatch } = view;
-      const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
-
-      const rightAligned = isRightAligned(state);
-      const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
-      const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
-
-      const inList = isInList(state, bullet_list, ordered_list);
-
-      if (shouldIndent) {
-        if (inList) {
-          if (sinkListItem(list_item)(state, dispatch)) {
-            stateChanged();
-            return true;
-          }
-        } else {
-          if (wrapIn(blockquote)(state, dispatch)) {
-            stateChanged();
-            return true;
-          }
+        const { state, dispatch } = view;
+        const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
+        
+        const rightAligned = isRightAligned(state);
+        const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
+        const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
+        
+        const inList = isInList(state, bullet_list, ordered_list);
+        
+        try {
+            if (shouldIndent) {
+                if (inList) {
+                    if (sinkListItem(list_item)(state, dispatch)) {
+//                        stateChanged();
+                        return true;
+                    }
+                } else {
+                    if (wrapIn(blockquote)(state, dispatch)) {
+//                        stateChanged();
+                        return true;
+                    }
+                }
+            }
+            
+            if (shouldOutdent) {
+                if (inList) {
+                    if (liftListItem(list_item)(state, dispatch)) {
+//                        stateChanged();
+                        return true;
+                    }
+                } else {
+                    if (lift(state, dispatch)) {
+//                        stateChanged();
+                        return true;
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("Indent/Outdent error:", err);
         }
-      }
-
-      if (shouldOutdent) {
-        if (inList) {
-          if (liftListItem(list_item)(state, dispatch)) {
-            stateChanged();
-            return true;
-          }
-        } else {
-          if (lift(state, dispatch)) {
-            stateChanged();
-            return true;
-          }
-        }
-      }
-
-      return false;
+        return false;
     }
     
     function isRightAligned(state) {
