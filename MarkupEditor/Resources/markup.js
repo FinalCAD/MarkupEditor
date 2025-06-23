@@ -20388,15 +20388,10 @@ function splitBlockKeepMarks(state, dispatch) {
       const { state, dispatch } = view;
       const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
 
-      const rightAligned = isRightAligned(state);
-
-      const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
-      const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
-
       const inList = isInList(state, bullet_list, ordered_list);
 
       try {
-        if (shouldIndent) {
+        if (type === 'in') {
           if (inList) {
             if (sinkListItem(list_item)(state, dispatch)) {
               safeStateChanged();
@@ -20410,7 +20405,7 @@ function splitBlockKeepMarks(state, dispatch) {
           }
         }
 
-        if (shouldOutdent) {
+        if (type === 'out') {
           if (inList) {
             if (liftListItem(list_item)(state, dispatch)) {
               safeStateChanged();
@@ -20418,11 +20413,6 @@ function splitBlockKeepMarks(state, dispatch) {
             }
           } else {
             if (lift(state, dispatch)) {
-              safeStateChanged();
-              return true;
-            }
-
-            if (wrapIn(blockquote)(state, dispatch)) {
               safeStateChanged();
               return true;
             }
@@ -20434,7 +20424,7 @@ function splitBlockKeepMarks(state, dispatch) {
 
       return false;
     }
-    
+
     function safeStateChanged() {
       try {
         stateChanged();
