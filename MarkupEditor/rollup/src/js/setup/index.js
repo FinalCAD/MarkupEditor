@@ -142,42 +142,49 @@ const placeholderPlugin = new Plugin({
   }
 })
 
-const syncUnderlineColorWithSpanPlugin = new Plugin({
-  appendTransaction(transactions, oldState, newState) {
-    let tr = newState.tr;
-    let modified = false;
+function syncUnderlineColorWithSpan(view) {
+  const { state } = view;
+  const { doc, tr } = state;
 
-    newState.doc.descendants((node, pos) => {
-      if (!node.isText) return;
+  let modified = false;
 
-      const spanMark = node.marks.find(m => m.type.name === 'span');
-      if (!spanMark) return;
+  doc.descendants((node, pos) => {
+    if (!node.isText) return;
 
-      const underlineMark = node.marks.find(m => m.type.name === 'underline');
-      if (!underlineMark) return;
+    const spanMark = node.marks.find(m => m.type.name === 'span');
+    if (!spanMark) return;
 
-      const style = spanMark.attrs.style || '';
-      const colorMatch = style.match(/color:\s*([^;]+)/);
-      const spanColor = colorMatch ? colorMatch[1].trim() : null;
+    const underlineMark = node.marks.find(m => m.type.name === 'underline');
+    if (!underlineMark) return;
 
-      const underlineColor = underlineMark.attrs?.color || null;
+    const style = spanMark.attrs.style || '';
+    const colorMatch = style.match(/color:\s*([^;]+)/);
+    const spanColor = colorMatch ? colorMatch[1].trim() : null;
 
-      if (spanColor && spanColor !== underlineColor) {
-        console.log(`[sync plugin] pos ${pos}: ${underlineColor} → ${spanColor}`);
-        tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-        tr = tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
-        modified = true;
-      }
-    });
+    const underlineColor = underlineMark.attrs?.color || null;
 
-    if (modified) {
-      return tr;
+    if (spanColor && spanColor !== underlineColor) {
+      tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
+      tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
+      modified = true;
     }
-    return null;
+  });
+
+  if (modified) {
+    view.dispatch(tr);
+  }
+}
+
+const autoSyncUnderlineColorPlugin = new Plugin({
+  props: {
+    handleDOMEvents: {
+      input(view) {
+        syncUnderlineColorWithSpan(view);
+        return false; // continue normal processing
+      }
+    }
   }
 });
-
-
 
 // :: (Object) → [Plugin]
 // A convenience plugin that bundles together a simple menu with basic
@@ -232,7 +239,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
-  plugins.push(syncUnderlineColorWithSpanPlugin)
+  plugins.push(syncUnderlineColorWithSpan)
     
   return plugins;
 }
