@@ -19810,41 +19810,8 @@ function splitBlockKeepMarks(state, dispatch) {
    */
   function toggleUnderline() {
       _toggleFormat('U');
-      syncUnderlineColorWithSpan(view)
+
   }
-    
-    function syncUnderlineColorWithSpan(view) {
-      const { state } = view;
-      const { doc, tr } = state;
-
-      let modified = false;
-
-      doc.descendants((node, pos) => {
-        if (!node.isText) return;
-
-        const spanMark = node.marks.find(m => m.type.name === 'span');
-        if (!spanMark) return;
-
-        const underlineMark = node.marks.find(m => m.type.name === 'underline');
-        if (!underlineMark) return;
-
-        const style = spanMark.attrs.style || '';
-        const colorMatch = style.match(/color:\s*([^;]+)/);
-        const spanColor = colorMatch ? colorMatch[1].trim() : null;
-
-        const underlineColor = underlineMark.attrs?.color || null;
-
-        if (spanColor && spanColor !== underlineColor) {
-          tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-          tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
-          modified = true;
-        }
-      });
-
-      if (modified) {
-        view.dispatch(tr);
-      }
-    }
     
   /**
    * Toggle the selection to/from strikethrough (<S>)
