@@ -146,20 +146,25 @@ const syncUnderlineColorPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
     let tr = newState.tr;
     let modified = false;
-    const { doc, selection } = newState;
-    const { from, to } = selection;
 
-    doc.nodesBetween(from, to, (node, pos) => {
+    const { doc } = newState;
+    doc.descendants((node, pos) => {
       if (!node.isText) return;
 
-      const underline = node.marks.find(m => m.type.name === 'underline');
-      const colorMark = node.marks.find(m => m.attrs?.color);
+      const underlineMark = node.marks.find(m => m.type.name === "underline");
+      const spanMark = node.marks.find(m => m.type.name === "span");
 
-      if (underline && colorMark && underline.attrs.color !== colorMark.attrs.color) {
-        const newUnderline = underline.type.create({ color: colorMark.attrs.color });
-        tr = tr.removeMark(pos, pos + node.nodeSize, underline.type);
-        tr = tr.addMark(pos, pos + node.nodeSize, newUnderline);
-        modified = true;
+      if (underlineMark && spanMark) {
+        const style = spanMark.attrs.style || "";
+        const colorMatch = style.match(/color:\s*([^;]+)/);
+        const textColor = colorMatch ? colorMatch[1].trim() : null;
+
+        if (textColor && underlineMark.attrs.color !== textColor) {
+          const newUnderline = underlineMark.type.create({ color: textColor });
+          tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
+          tr = tr.addMark(pos, pos + node.nodeSize, newUnderline);
+          modified = true;
+        }
       }
     });
 

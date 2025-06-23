@@ -14668,29 +14668,26 @@
         subDOM = ["sub", 0],
         supDOM = ["sup", 0];
     
-    const underlineMarkSpec = {
+    const underlineMark = {
       attrs: {
         color: { default: null }
       },
       parseDOM: [{
-        tag: 'span[style*="text-decoration"]',
+        tag: "span[style*='text-decoration']",
         getAttrs(dom) {
-          const style = dom.getAttribute('style') || '';
-          if (!/text-decoration:\s*underline/.test(style)) return false;
-          const colorMatch = style.match(/color:\s*([^;]+)/);
-          return {
-            color: colorMatch ? colorMatch[1].trim() : null,
-          };
+          const style = dom.getAttribute("style") || "";
+          const hasUnderline = /text-decoration:\s*underline/.test(style);
+          if (!hasUnderline) return false;
+          const colorMatch = style.match(/text-decoration-color:\s*([^;]+)/);
+          return { color: colorMatch ? colorMatch[1].trim() : null };
         }
       }],
       toDOM(mark) {
-        const { color } = mark.attrs;
-        const style = [
-          'text-decoration: underline',
-          color ? `color: ${color}` : '',
-          color ? `text-decoration-color: ${color}` : ''
-        ].filter(Boolean).join('; ');
-        return ['span', { style }, 0];
+        const styleParts = ["text-decoration: underline"];
+        if (mark.attrs.color) {
+          styleParts.push(`text-decoration-color: ${mark.attrs.color}`);
+        }
+        return ["span", { style: styleParts.join("; ") }, 0];
       }
     };
 
@@ -14729,7 +14726,7 @@
       toDOM() { return uDOM }
     },
       
-    underline: underlineMarkSpec,
+    underline: underlineMark,
 
     sub: {
       parseDOM: [{tag: "sub"}, {style: "vertical-align: sub"}],
