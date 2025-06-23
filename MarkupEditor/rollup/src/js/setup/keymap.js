@@ -75,7 +75,7 @@ export function buildKeymap(schema, mapKeys) {
   }
   if (type = schema.marks.code)
     bind("Mod-`", toggleMark(type))
-  if (type = schema.marks.u) {
+  if (type = schema.marks.underline) {
     bind("Alt-Shift-u", toggleMark(type))
     bind("Alt-Shift-U", toggleMark(type))
   }

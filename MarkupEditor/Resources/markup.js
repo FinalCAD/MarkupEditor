@@ -14724,10 +14724,10 @@
       toDOM() { return strikeDOM }
     },
 
-    u: {
-      parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
-      toDOM() { return uDOM }
-    },
+//    u: {
+//      parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
+//      toDOM() { return uDOM }
+//    },
       
     underline: underlineMark,
 
@@ -20656,7 +20656,7 @@ function splitBlockKeepMarks(state, dispatch) {
       const schema = view.state.schema;
       state['bold'] = markTypes.has(schema.marks.strong);
       state['italic'] = markTypes.has(schema.marks.em);
-      state['underline'] = markTypes.has(schema.marks.u);
+      state['underline'] = markTypes.has(schema.marks.underline);
       state['strike'] = markTypes.has(schema.marks.s);
       state['sub'] = markTypes.has(schema.marks.sub);
       state['sup'] = markTypes.has(schema.marks.sup);
@@ -21738,7 +21738,7 @@ function splitBlockKeepMarks(state, dispatch) {
     }
     if (type = schema.marks.code)
       bind("Mod-`", toggleMark(type));
-    if (type = schema.marks.u) {
+    if (type = schema.marks.underline) {
       bind("Alt-Shift-u", toggleMark(type));
       bind("Alt-Shift-U", toggleMark(type));
     }

@@ -1705,7 +1705,8 @@ function _toggleFormat(type) {
             toggle = toggleMark(state.schema.marks.em);
             break;
         case 'U':
-            toggle = toggleMark(state.schema.marks.u);
+            toggle = toggleMark(state.schema.marks.underline);
+//            toggle = toggleMark(state.schema.marks.u);
             break;
         case 'CODE':
             toggle = toggleMark(state.schema.marks.code);
@@ -2348,7 +2349,7 @@ const _getSelectionState = function() {
     const schema = view.state.schema;
     state['bold'] = markTypes.has(schema.marks.strong);
     state['italic'] = markTypes.has(schema.marks.em);
-    state['underline'] = markTypes.has(schema.marks.u);
+    state['underline'] = markTypes.has(schema.marks.underline);
     state['strike'] = markTypes.has(schema.marks.s);
     state['sub'] = markTypes.has(schema.marks.sub);
     state['sup'] = markTypes.has(schema.marks.sup);

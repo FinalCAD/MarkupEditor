@@ -261,6 +261,32 @@ const emDOM = ["em", 0],
       subDOM = ["sub", 0],
       supDOM = ["sup", 0]
 
+const underlineMark = {
+  attrs: {
+    color: { default: null }
+  },
+  parseDOM: [{
+    tag: "span[style*='text-decoration']",
+    getAttrs(dom) {
+      const style = dom.getAttribute("style") || "";
+      const hasUnderline = /text-decoration:\s*underline/.test(style);
+      if (!hasUnderline) return false;
+
+      const colorMatch = style.match(/text-decoration-color:\s*([^;]+)/);
+      return {
+        color: colorMatch ? colorMatch[1].trim() : null
+      };
+    }
+  }],
+  toDOM(mark) {
+    const style = [
+      "text-decoration: underline",
+      mark.attrs.color && `text-decoration-color: ${mark.attrs.color}`
+    ].filter(Boolean).join("; ");
+    return ["span", { style }, 0];
+  }
+};
+
 // :: Object [Specs](#model.MarkSpec) for the marks in the schema.
 export const marks = {
   // :: MarkSpec A link. Has `href` and `title` attributes. `title`
@@ -291,10 +317,12 @@ export const marks = {
     toDOM() { return strikeDOM }
   },
 
-  u: {
-    parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
-    toDOM() { return uDOM }
-  },
+//  u: {
+//    parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
+//    toDOM() { return uDOM }
+//  },
+    
+    underline: underlineMark,
 
   sub: {
     parseDOM: [{tag: "sub"}, {style: "vertical-align: sub"}],
