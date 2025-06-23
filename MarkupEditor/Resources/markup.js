@@ -20385,64 +20385,76 @@ function splitBlockKeepMarks(state, dispatch) {
      * if textAlign = "right" then indent / outdent in reverse
      */
     function adjustIndent(type) {
-        const { state, dispatch } = view;
-        const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
-        
-        const rightAligned = isRightAligned(state);
-        const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
-        const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
-        
-        const inList = isInList(state, bullet_list, ordered_list);
-        
-        try {
-            if (shouldIndent) {
-                if (inList) {
-                    if (sinkListItem(list_item)(state, dispatch)) {
-//                        stateChanged();
-                        return true;
-                    }
-                } else {
-                    if (wrapIn(blockquote)(state, dispatch)) {
-//                        stateChanged();
-                        return true;
-                    }
-                }
+      const { state, dispatch } = view;
+      const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
+
+      const rightAligned = isRightAligned(state);
+
+      const shouldIndent = (type === 'in' && !rightAligned) || (type === 'out' && rightAligned);
+      const shouldOutdent = (type === 'out' && !rightAligned) || (type === 'in' && rightAligned);
+
+      const inList = isInList(state, bullet_list, ordered_list);
+
+      try {
+        if (shouldIndent) {
+          if (inList) {
+            if (sinkListItem(list_item)(state, dispatch)) {
+              safeStateChanged();
+              return true;
             }
-            
-            if (shouldOutdent) {
-                if (inList) {
-                    if (liftListItem(list_item)(state, dispatch)) {
-//                        stateChanged();
-                        return true;
-                    }
-                } else {
-                    if (lift(state, dispatch)) {
-//                        stateChanged();
-                        return true;
-                    }
-                }
+          } else {
+            if (wrapIn(blockquote)(state, dispatch)) {
+              safeStateChanged();
+              return true;
             }
-        } catch (err) {
-            console.error("Indent/Outdent error:", err);
+          }
         }
-        return false;
+
+        if (shouldOutdent) {
+          if (inList) {
+            if (liftListItem(list_item)(state, dispatch)) {
+              safeStateChanged();
+              return true;
+            }
+          } else {
+            if (lift(state, dispatch)) {
+              safeStateChanged();
+              return true;
+            }
+
+            if (wrapIn(blockquote)(state, dispatch)) {
+              safeStateChanged();
+              return true;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Indent/Outdent error:", err);
+      }
+
+      return false;
     }
     
+    function safeStateChanged() {
+      try {
+        stateChanged();
+      } catch (e) {
+        console.warn("stateChanged() failed:", e);
+      }
+    }
+
     function isRightAligned(state) {
-      const { from, $from } = state.selection;
-      const node = $from.node($from.depth);
+      const { $from } = state.selection;
+      for (let d = $from.depth; d >= 0; d--) {
+        const node = $from.node(d);
+        const align = node.attrs?.align || null;
+        if (align === "right") return true;
+      }
 
-      // Look for textAlign in node attribute
-      const alignAttr = node.attrs?.align || node.attrs?.textAlign;
-      if (alignAttr === "right") return true;
-
-      // Look for textAlign in marks
-      const textNode = state.doc.nodeAt(from);
-      if (textNode && textNode.marks) {
-        for (const mark of textNode.marks) {
-          const align = mark.attrs?.align || mark.attrs?.textAlign;
-          if (align === "right") return true;
-        }
+      const mark = state.schema.marks.align;
+      if (mark) {
+        const marks = state.storedMarks || state.selection.$from.marks();
+        return marks.some(m => m.type === mark && m.attrs?.align === "right");
       }
 
       return false;
