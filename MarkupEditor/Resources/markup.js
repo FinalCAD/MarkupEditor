@@ -14678,16 +14678,19 @@
           const style = dom.getAttribute("style") || "";
           const hasUnderline = /text-decoration:\s*underline/.test(style);
           if (!hasUnderline) return false;
+
           const colorMatch = style.match(/text-decoration-color:\s*([^;]+)/);
-          return { color: colorMatch ? colorMatch[1].trim() : null };
+          return {
+            color: colorMatch ? colorMatch[1].trim() : null
+          };
         }
       }],
       toDOM(mark) {
-        const styleParts = ["text-decoration: underline"];
-        if (mark.attrs.color) {
-          styleParts.push(`text-decoration-color: ${mark.attrs.color}`);
-        }
-        return ["span", { style: styleParts.join("; ") }, 0];
+        const style = [
+          "text-decoration: underline",
+          mark.attrs.color && `text-decoration-color: ${mark.attrs.color}`
+        ].filter(Boolean).join("; ");
+        return ["span", { style }, 0];
       }
     };
 

@@ -142,19 +142,20 @@ const placeholderPlugin = new Plugin({
   }
 })
 
-const syncUnderlineColorPlugin = new Plugin({
+export const syncUnderlineColorPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
     let tr = newState.tr;
     let modified = false;
 
     const { doc } = newState;
+
     doc.descendants((node, pos) => {
       if (!node.isText) return;
 
       const underlineMark = node.marks.find(m => m.type.name === "underline");
       const spanMark = node.marks.find(m => m.type.name === "span");
 
-      if (underlineMark && spanMark) {
+        if (underlineMark && spanMark) {
         const style = spanMark.attrs.style || "";
         const colorMatch = style.match(/color:\s*([^;]+)/);
         const textColor = colorMatch ? colorMatch[1].trim() : null;
@@ -165,6 +166,13 @@ const syncUnderlineColorPlugin = new Plugin({
           tr = tr.addMark(pos, pos + node.nodeSize, newUnderline);
           modified = true;
         }
+      }
+
+      if (underlineMark && !spanMark && underlineMark.attrs.color) {
+        const cleanUnderline = underlineMark.type.create({ color: null });
+        tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
+        tr = tr.addMark(pos, pos + node.nodeSize, cleanUnderline);
+        modified = true;
       }
     });
 
