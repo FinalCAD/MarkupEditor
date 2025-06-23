@@ -14667,6 +14667,32 @@
         uDOM = ["u", 0],
         subDOM = ["sub", 0],
         supDOM = ["sup", 0];
+    
+    const underlineMarkSpec = {
+      attrs: {
+        color: { default: null }
+      },
+      parseDOM: [{
+        tag: 'span[style*="text-decoration"]',
+        getAttrs(dom) {
+          const style = dom.getAttribute('style') || '';
+          if (!/text-decoration:\s*underline/.test(style)) return false;
+          const colorMatch = style.match(/color:\s*([^;]+)/);
+          return {
+            color: colorMatch ? colorMatch[1].trim() : null,
+          };
+        }
+      }],
+      toDOM(mark) {
+        const { color } = mark.attrs;
+        const style = [
+          'text-decoration: underline',
+          color ? `color: ${color}` : '',
+          color ? `text-decoration-color: ${color}` : ''
+        ].filter(Boolean).join('; ');
+        return ['span', { style }, 0];
+      }
+    };
 
   // :: Object [Specs](#model.MarkSpec) for the marks in the schema.
   const marks = {
@@ -14702,6 +14728,8 @@
       parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
       toDOM() { return uDOM }
     },
+      
+    underline: underlineMarkSpec,
 
     sub: {
       parseDOM: [{tag: "sub"}, {style: "vertical-align: sub"}],
@@ -19973,7 +20001,8 @@ function splitBlockKeepMarks(state, dispatch) {
               toggle = toggleMark(state.schema.marks.em);
               break;
           case 'U':
-              toggle = toggleMark(state.schema.marks.u);
+              toggle = toggleMark(schema.marks.underline)
+//              toggle = toggleMark(state.schema.marks.u);
               break;
           case 'CODE':
               toggle = toggleMark(state.schema.marks.code);

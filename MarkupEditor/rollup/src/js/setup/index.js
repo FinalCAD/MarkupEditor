@@ -142,6 +142,32 @@ const placeholderPlugin = new Plugin({
   }
 })
 
+const syncUnderlineColorPlugin = new Plugin({
+  appendTransaction(transactions, oldState, newState) {
+    let tr = newState.tr;
+    let modified = false;
+    const { doc, selection } = newState;
+    const { from, to } = selection;
+
+    doc.nodesBetween(from, to, (node, pos) => {
+      if (!node.isText) return;
+
+      const underline = node.marks.find(m => m.type.name === 'underline');
+      const colorMark = node.marks.find(m => m.attrs?.color);
+
+      if (underline && colorMark && underline.attrs.color !== colorMark.attrs.color) {
+        const newUnderline = underline.type.create({ color: colorMark.attrs.color });
+        tr = tr.removeMark(pos, pos + node.nodeSize, underline.type);
+        tr = tr.addMark(pos, pos + node.nodeSize, newUnderline);
+        modified = true;
+      }
+    });
+
+    return modified ? tr : null;
+  }
+});
+
+
 // :: (Object) → [Plugin]
 // A convenience plugin that bundles together a simple menu with basic
 // key bindings, input rules, and styling for the example schema.
@@ -175,6 +201,7 @@ export function markupSetup(options) {
     keymap(baseKeymap),
     dropCursor(),
     gapCursor(),
+    syncUnderlineColorPlugin(),
   ]
   if (options.menuBar !== false)
     plugins.push(menuBar({floating: options.floatingMenu !== false,
