@@ -19810,7 +19810,6 @@ function splitBlockKeepMarks(state, dispatch) {
    */
   function toggleUnderline() {
       _toggleFormat('U');
-      syncUnderlineColorWithSpan(view);
   }
     
   /**
