@@ -175,7 +175,11 @@ function syncUnderlineColorWithSpan(view) {
   }
 }
 
+const underlineColorSyncKey = new PluginKey('underlineColorSync');
+
 const autoSyncUnderlineColorPlugin = new Plugin({
+  key: underlineColorSyncKey,
+  
   props: {
     handleDOMEvents: {
       input(view) {
