@@ -142,10 +142,8 @@ const placeholderPlugin = new Plugin({
   }
 })
 
-const underlineColorSyncPlugin = new Plugin({
+export const underlineColorSyncPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
-    console.log('[PLUGIN] appendTransaction called');
-
     let tr = newState.tr;
     let modified = false;
 
@@ -155,41 +153,30 @@ const underlineColorSyncPlugin = new Plugin({
       const underlineMark = node.marks.find(m => m.type.name === 'underline');
       const spanMark = node.marks.find(m => m.type.name === 'span');
 
-      console.log(`[NODE @${pos}]`, {
-        text: node.text,
-        marks: node.marks.map(m => m.type.name)
-      });
+      const currentUnderlineColor = underlineMark?.attrs?.color || null;
 
       if (underlineMark && spanMark) {
-        const style = spanMark.attrs.style || "";
+        const style = spanMark.attrs.style || '';
         const colorMatch = style.match(/color:\s*([^;]+)/);
-        const textColor = colorMatch ? colorMatch[1].trim() : null;
+        const spanColor = colorMatch ? colorMatch[1].trim() : null;
 
-        console.log(`[SYNC] underline + color found`, { textColor, underlineColor: underlineMark.attrs.color });
-
-        if (textColor && underlineMark.attrs.color !== textColor) {
-          const newUnderline = underlineMark.type.create({ color: textColor });
+        if (spanColor && currentUnderlineColor !== spanColor) {
+          const updatedMark = underlineMark.type.create({ color: spanColor });
           tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-          tr = tr.addMark(pos, pos + node.nodeSize, newUnderline);
+          tr = tr.addMark(pos, pos + node.nodeSize, updatedMark);
           modified = true;
         }
       }
 
-      if (underlineMark && !spanMark && underlineMark.attrs.color) {
-        console.log(`[CLEAN] underline without color, cleaning`);
-        const cleanUnderline = underlineMark.type.create({ color: null });
+      if (underlineMark && !spanMark && currentUnderlineColor) {
+        const cleanedMark = underlineMark.type.create({ color: null });
         tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-        tr = tr.addMark(pos, pos + node.nodeSize, cleanUnderline);
+        tr = tr.addMark(pos, pos + node.nodeSize, cleanedMark);
         modified = true;
       }
     });
 
-    if (modified) {
-      console.log('[PLUGIN] Modified transaction applied');
-      return tr;
-    }
-
-    return null;
+    return modified ? tr : null;
   }
 });
 
