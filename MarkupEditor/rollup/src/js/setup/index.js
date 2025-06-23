@@ -95,7 +95,11 @@ const searchModePlugin  = new Plugin({
  * The Map is keyed by the src for the image. If the src is duplicated in the document, we only 
  * get one 'addedImage' notification.
  */
+const imageKey = new PluginKey('image');
+
 const imagePlugin = new Plugin({
+  key: imageKey,
+    
   state: {
     init() {
       return new Map()
@@ -127,7 +131,11 @@ const imagePlugin = new Plugin({
  * 
  * @returns {Plugin}
  */
+const placeHolderKey = new PluginKey('placeHolder');
+
 const placeholderPlugin = new Plugin({
+  key: placeHolderKey,
+    
   props: {
     decorations(state) {
       if (!placeholderText) return;   // No need to mess around if we have no placeholder
@@ -243,7 +251,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
-//  plugins.push(autoSyncUnderlineColorPlugin)
+  plugins.push(autoSyncUnderlineColorPlugin)
     
   return plugins;
 }
