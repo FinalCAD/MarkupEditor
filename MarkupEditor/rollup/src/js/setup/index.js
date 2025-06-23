@@ -179,15 +179,9 @@ const autoSyncUnderlineColorPlugin = new Plugin({
   props: {
     handleDOMEvents: {
       input(view) {
-        console.log("[Plugin] input triggered");
         syncUnderlineColorWithSpan(view);
         return false;
       }
-        keyup(view) {
-          console.log("[Plugin] keyup triggered");
-          syncUnderlineColorWithSpan(view);
-          return false;
-        }
     }
   }
 });
@@ -245,7 +239,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
-  plugins.push(syncUnderlineColorWithSpan)
+  plugins.push(autoSyncUnderlineColorPlugin)
     
   return plugins;
 }
