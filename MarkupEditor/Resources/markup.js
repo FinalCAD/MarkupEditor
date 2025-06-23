@@ -19824,18 +19824,20 @@ function splitBlockKeepMarks(state, dispatch) {
       doc.descendants((node, pos) => {
         if (!node.isText) return;
 
-        const underlineMark = node.marks.find(m => m.type === underlineType);
         const spanMark = node.marks.find(m => m.type === spanType);
+        if (!spanMark) return;
 
-        if (!underlineMark || !spanMark) return;
+        const underlineMark = node.marks.find(m => m.type === underlineType);
+        if (!underlineMark) return; // ✅ on ne bloque pas avant, juste ici
 
         const style = spanMark.attrs.style || '';
         const colorMatch = style.match(/color:\s*([^;]+)/);
         const spanColor = colorMatch ? colorMatch[1].trim() : null;
 
-        const underlineColor = underlineMark.attrs.color || null;
+        const underlineColor = underlineMark.attrs?.color || null;
 
         if (spanColor && spanColor !== underlineColor) {
+          console.log(`[sync] pos ${pos}: ${underlineColor} → ${spanColor}`);
           tr.removeMark(pos, pos + node.nodeSize, underlineType);
           tr.addMark(pos, pos + node.nodeSize, underlineType.create({ color: spanColor }));
           modified = true;

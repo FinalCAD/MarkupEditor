@@ -235,7 +235,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
-  plugins.push(underlineColorSyncPlugin)
+//  plugins.push(underlineColorSyncPlugin)
     
   return plugins;
 }
