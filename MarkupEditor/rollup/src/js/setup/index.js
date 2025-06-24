@@ -188,14 +188,22 @@ const underlineColorSyncKey = new PluginKey('underlineColorSync');
 const autoSyncUnderlineColorPlugin = new Plugin({
   key: underlineColorSyncKey,
   
-  props: {
-    handleDOMEvents: {
-      input(view) {
-        syncUnderlineColorWithSpan(view);
-        return false;
+//  props: {
+//    handleDOMEvents: {
+//      input(view) {
+//        syncUnderlineColorWithSpan(view);
+//        return false;
+//      }
+//    }
+//  }
+    
+    props: {
+        handleDOMEvents: {
+          input(view) {
+            throw new Error("plugin test");
+          }
+        }
       }
-    }
-  }
 });
 
 // :: (Object) → [Plugin]
