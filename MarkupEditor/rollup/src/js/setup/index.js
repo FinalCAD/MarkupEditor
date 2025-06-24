@@ -12,7 +12,6 @@ import {buildMenuItems} from "./menu"
 import {buildKeymap} from "./keymap"
 import {buildInputRules} from "./inputrules"
 import {autoSyncUnderlineColorPlugin} from "../plugins/underlineColor"
-import {autoLinkPlugin} from "../plugins/autoLink"
 
 import {placeholderText, postMessage, selectedID, resetSelectedID, stateChanged, searchIsActive} from "../markup"
 
@@ -206,8 +205,6 @@ export function markupSetup(options) {
   plugins.push(searchModePlugin)
 
   plugins.push(autoSyncUnderlineColorPlugin)
-  
-  plugins.push(autoLinkPlugin)
     
   return plugins;
 }

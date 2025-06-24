@@ -22,6 +22,7 @@ import {
     toggleHeaderRow,
 } from 'prosemirror-tables'
 import {SearchQuery, setSearchState, findNext, findPrev} from 'prosemirror-search'
+import {applyAutoLink} from "./autoLink"
 
 /**
  * The NodeView to support divs, as installed in main.js.
@@ -969,6 +970,12 @@ function _loadUserCSSFile(file) {
  */
 window.addEventListener('load', function() {
     _callback('ready');
+});
+
+window.addEventListener("blur", () => {
+  if (window.view) {
+    applyAutoLink(window.view);
+  }
 });
 
 /**

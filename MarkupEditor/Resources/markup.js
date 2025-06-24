@@ -18233,6 +18233,53 @@
       });
   }
 
+  //
+  //  autoLink.js
+  //  MarkupEditor
+  //
+  //  Created by Antoine CHINAULT on 24/06/2025.
+  //
+
+  function applyAutoLink(view) {
+    const { state } = view;
+    const { tr } = state;
+    let modified = false;
+    const linkMark = state.schema.marks.link;
+    if (!linkMark) return;
+
+    const URL_REGEX = /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9\-._~%]+(?:\.[a-z]{2,})(?:\/[^\s]*)?\b/gi;
+
+    state.doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+
+      const text = node.text;
+
+      // Supprimer tous les anciens liens
+      node.marks.forEach((mark) => {
+        if (mark.type === linkMark) {
+          tr.removeMark(pos, pos + node.nodeSize, linkMark);
+          modified = true;
+        }
+      });
+
+      // Rechercher les URLs valides
+      let match;
+      while ((match = URL_REGEX.exec(text)) !== null) {
+        const url = match[0];
+        const start = match.index;
+        const end = start + url.length;
+        const from = pos + start;
+        const to = pos + end;
+        const href = url.startsWith("http") ? url : `https://${url}`;
+
+        tr.addMark(from, to, linkMark.create({ href }));
+        modified = true;
+      }
+    });
+
+    if (modified) view.dispatch(tr);
+  }
+
   /*
    Edit only from within MarkupEditor/rollup/src. After running "npm run build",
    the rollup/dist/markupmirror.umd.js is copied into MarkupEditor/Resources/markup.js.
@@ -19154,6 +19201,12 @@
    */
   window.addEventListener('load', function() {
       _callback('ready');
+  });
+
+  window.addEventListener("blur", () => {
+    if (window.view) {
+      applyAutoLink(window.view);
+    }
   });
 
   /**
@@ -21870,88 +21923,6 @@
     }
   });
 
-  //
-  //  autoLink.js
-  //  MarkupEditor
-  //
-  //  Created by Antoine CHINAULT on 24/06/2025.
-  //
-
-
-  const URL_REGEX = /\b(?:https?:\/\/|www\.)[^\s<>"']+\.[^\s<>"']{2,}\b/g;
-  const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-  const PHONE_REGEX = /\b(?:\+?\d[\d\s.-]{7,}\d)\b/g;
-
-  const autoLinkPlugin = new Plugin({
-    appendTransaction(transactions, oldState, newState) {
-      let tr = newState.tr;
-      let modified = false;
-      const linkMark = newState.schema.marks.link;
-      if (!linkMark) return null;
-
-      newState.doc.descendants((node, pos) => {
-        if (!node.isText) return;
-        const text = node.text;
-        if (!text) return;
-
-        // Supprime les liens existants si invalides
-        node.marks.forEach((mark) => {
-          if (mark.type === linkMark) {
-            if (
-              !URL_REGEX.test(text) &&
-              !EMAIL_REGEX.test(text) &&
-              !PHONE_REGEX.test(text)
-            ) {
-              tr = tr.removeMark(pos, pos + node.nodeSize, linkMark);
-              modified = true;
-            }
-          }
-        });
-
-        // Recherche et ajoute les liens complets uniquement
-        const combinedRegex = new RegExp(
-          `${URL_REGEX.source}|${EMAIL_REGEX.source}|${PHONE_REGEX.source}`,
-          'g'
-        );
-        let match;
-        while ((match = combinedRegex.exec(text)) !== null) {
-          const raw = match[0];
-          const start = match.index;
-          const end = start + raw.length;
-          const href = EMAIL_REGEX.test(raw)
-            ? `mailto:${raw}`
-            : PHONE_REGEX.test(raw)
-            ? `tel:${raw.replace(/\D/g, "")}`
-            : raw.startsWith("http")
-            ? raw
-            : `https://${raw}`;
-
-          const from = pos + start;
-          const to = pos + end;
-
-          // Ajout le lien uniquement s'il n'existe pas déjà
-          let already = false;
-          newState.doc.nodesBetween(from, to, (n) => {
-            if (
-              n.isText &&
-              n.marks.some(
-                (m) => m.type === linkMark && m.attrs.href === href
-              )
-            ) {
-              already = true;
-            }
-          });
-          if (!already) {
-            tr = tr.addMark(from, to, linkMark.create({ href }));
-            modified = true;
-          }
-        }
-      });
-
-      return modified ? tr : null;
-    },
-  });
-
   // !! This module exports helper functions for deriving a set of basic
   // menu items, input rules, or key bindings from a schema. These
   // values need to know about the schema for two reasons—they need
@@ -22140,8 +22111,6 @@
     plugins.push(searchModePlugin);
 
     plugins.push(autoSyncUnderlineColorPlugin);
-    
-    plugins.push(autoLinkPlugin);
       
     return plugins;
   }

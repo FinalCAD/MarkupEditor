@@ -841,7 +841,6 @@
 		71AE45552E0A8FED002C363B /* plugins */ = {
 			isa = PBXGroup;
 			children = (
-				71AE45562E0AD199002C363B /* autoLink.js */,
 				71AE45542E0A8EFF002C363B /* underlineColor.js */,
 			);
 			path = plugins;
@@ -2870,6 +2869,7 @@
 		AA40BDDA2CD572C100264B1F /* js */ = {
 			isa = PBXGroup;
 			children = (
+				71AE45562E0AD199002C363B /* autoLink.js */,
 				71AE45552E0A8FED002C363B /* plugins */,
 				AA40BDCE2CD572C100264B1F /* menu */,
 				AA40BDD02CD572C100264B1F /* schema */,
