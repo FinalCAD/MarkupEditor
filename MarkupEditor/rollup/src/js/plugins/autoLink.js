@@ -5,12 +5,10 @@
 //  Created by Antoine CHINAULT on 24/06/2025.
 //
 
-import { Plugin } from "prosemirror-state";
-
 import { Plugin } from "prosemirror-state"
 import { MarkType } from "prosemirror-model"
 
-const linkifyPlugin = new Plugin({
+export const autoLinkPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
     const tr = newState.tr
     let modified = false
