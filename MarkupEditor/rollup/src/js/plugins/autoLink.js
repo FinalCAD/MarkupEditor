@@ -7,67 +7,50 @@
 
 import { Plugin } from "prosemirror-state";
 
-export const autoLinkPlugin = new Plugin({
+import { Plugin } from "prosemirror-state"
+import { MarkType } from "prosemirror-model"
+
+const linkifyPlugin = new Plugin({
   appendTransaction(transactions, oldState, newState) {
-    let tr = newState.tr;
-    let modified = false;
-    const linkMark = newState.schema.marks.link;
-    if (!linkMark) return;
+    const tr = newState.tr
+    let modified = false
 
-    const patterns = [
-      { type: 'url', regex: /\b(?:https?:\/\/|www\.)[^\s<>"']+\b/g, getHref: t => t.startsWith('www.') ? 'https://' + t : t },
-      { type: 'email', regex: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g, getHref: t => 'mailto:' + t },
-      { type: 'tel', regex: /\b(?:\+?\d[\d\s.-]{7,}\d)\b/g, getHref: t => 'tel:' + t.replace(/\D/g, '') }
-    ];
+    const linkMark = newState.schema.marks.link
+    if (!linkMark) return null
 
-    newState.doc.descendants((node, pos) => {
-      if (!node.isTextblock) return;
+    const urlRegex = /\bhttps?:\/\/[^\s<>{}()[\]]+\b|www\.[^\s<>{}()[\]]+\b/g
+    const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi
+    const phoneRegex = /\b(?:\+?\d[\d\s.-]{7,}\d)\b/g
 
-      const text = node.textContent;
-      if (!text) return;
+    function applyMatches(regex, getHref) {
+      newState.doc.descendants((node, pos) => {
+        if (!node.isText) return
 
-      let marksToRemove = [];
+        const text = node.text
+        if (!text) return
 
-     node.descendants((child, offset) => {
-        if (!child.isText) return;
-
-        child.marks.forEach(mark => {
-          if (mark.type.name === 'link') {
-            const linkText = child.text;
-            const isStillValid = patterns.some(p => p.regex.test(linkText));
-            if (!isStillValid) {
-              tr = tr.removeMark(pos + offset, pos + offset + child.nodeSize, mark.type);
-              modified = true;
-            }
-          }
-        });
-      });
-
-      for (let { regex, getHref } of patterns) {
-        let match;
+        let match
         while ((match = regex.exec(text)) !== null) {
-          const full = match[0];
-          const start = match.index;
-          const end = start + full.length;
+          const start = match.index
+          const end = start + match[0].length
 
-          const from = pos + 1 + start;
-          const to = pos + 1 + end;
+          const from = pos + start
+          const to = pos + end
 
-          let hasMark = false;
-          newState.doc.nodesBetween(from, to, (n) => {
-            if (n.isText && n.marks.some(m => m.type === linkMark && m.attrs.href === getHref(full))) {
-              hasMark = true;
-            }
-          });
-
-          if (!hasMark) {
-            tr = tr.addMark(from, to, linkMark.create({ href: getHref(full) }));
-            modified = true;
+          const existing = linkMark.isInSet(node.marks)
+          if (!existing || existing.attrs.href !== getHref(match[0])) {
+            tr.removeMark(from, to, linkMark)
+            tr.addMark(from, to, linkMark.create({ href: getHref(match[0]) }))
+            modified = true
           }
         }
-      }
-    });
+      })
+    }
 
-    return modified ? tr : null;
+    applyMatches(urlRegex, url => url.startsWith('http') ? url : 'https://' + url)
+    applyMatches(emailRegex, email => 'mailto:' + email)
+    applyMatches(phoneRegex, phone => 'tel:' + phone.replace(/\D/g, ''))
+
+    return modified ? tr : null
   }
-});
+})
