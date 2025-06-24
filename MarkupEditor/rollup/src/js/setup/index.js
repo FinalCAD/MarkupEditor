@@ -11,6 +11,7 @@ import {menuBar} from "../menu/menubar"
 import {buildMenuItems} from "./menu"
 import {buildKeymap} from "./keymap"
 import {buildInputRules} from "./inputrules"
+import {autoSyncUnderlineColorPlugin} from "../plugins/underlineColor"
 
 import {placeholderText, postMessage, selectedID, resetSelectedID, stateChanged, searchIsActive} from "../markup"
 
@@ -150,62 +151,6 @@ const placeholderPlugin = new Plugin({
   }
 })
 
-function syncUnderlineColorWithSpan(view) {
-  const { state } = view;
-  const { doc, tr } = state;
-
-  let modified = false;
-
-  doc.descendants((node, pos) => {
-    if (!node.isText) return;
-
-    const spanMark = node.marks.find(m => m.type.name === 'span');
-    if (!spanMark) return;
-
-    const underlineMark = node.marks.find(m => m.type.name === 'underline');
-    if (!underlineMark) return;
-
-    const style = spanMark.attrs.style || '';
-    const colorMatch = style.match(/color:\s*([^;]+)/);
-    const spanColor = colorMatch ? colorMatch[1].trim() : null;
-
-    const underlineColor = underlineMark.attrs?.color || null;
-
-    if (spanColor && spanColor !== underlineColor) {
-      tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-      tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
-      modified = true;
-    }
-  });
-
-  if (modified) {
-    view.dispatch(tr);
-  }
-}
-
-const underlineColorSyncKey = new PluginKey('underlineColorSync');
-
-const autoSyncUnderlineColorPlugin = new Plugin({
-  key: underlineColorSyncKey,
-  
-//  props: {
-//    handleDOMEvents: {
-//      input(view) {
-//        syncUnderlineColorWithSpan(view);
-//        return false;
-//      }
-//    }
-//  }
-    
-    props: {
-        handleDOMEvents: {
-          input(view) {
-            throw new Error("plugin test");
-          }
-        }
-      }
-});
-
 // :: (Object) → [Plugin]
 // A convenience plugin that bundles together a simple menu with basic
 // key bindings, input rules, and styling for the example schema.
@@ -260,8 +205,6 @@ export function markupSetup(options) {
   plugins.push(searchModePlugin)
 
   plugins.push(autoSyncUnderlineColorPlugin)
-    
-  console.log("Liste de plugins finale :", pluginList.map(p => p.key?.key || "no-key"));
     
   return [];
 }

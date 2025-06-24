@@ -158,6 +158,7 @@
 /* Begin PBXFileReference section */
 		4766AFA32B3E230500D9E1E5 /* HtmlButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HtmlButton.swift; sourceTree = "<group>"; };
 		4766AFB12B3F523500D9E1E5 /* HtmlButtonGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HtmlButtonGroup.swift; sourceTree = "<group>"; };
+		71AE45542E0A8EFF002C363B /* underlineColor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = underlineColor.js; sourceTree = "<group>"; };
 		AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupEditor.swift; sourceTree = "<group>"; };
 		AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarStyle.swift; sourceTree = "<group>"; };
 		AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupToolbarUIView.swift; sourceTree = "<group>"; };
@@ -836,6 +837,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		71AE45552E0A8FED002C363B /* plugins */ = {
+			isa = PBXGroup;
+			children = (
+				71AE45542E0A8EFF002C363B /* underlineColor.js */,
+			);
+			path = plugins;
+			sourceTree = "<group>";
+		};
 		AA0DDC6928AEA8C70081B869 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -2859,6 +2868,7 @@
 		AA40BDDA2CD572C100264B1F /* js */ = {
 			isa = PBXGroup;
 			children = (
+				71AE45552E0A8FED002C363B /* plugins */,
 				AA40BDCE2CD572C100264B1F /* menu */,
 				AA40BDD02CD572C100264B1F /* schema */,
 				AA40BDD62CD572C100264B1F /* setup */,
