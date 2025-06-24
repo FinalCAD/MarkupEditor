@@ -21882,54 +21882,48 @@
     appendTransaction(transactions, oldState, newState) {
       let tr = newState.tr;
       let modified = false;
-      const linkMark = newState.schema.marks.link;
 
-      const urlRegex = /\b(https?:\/\/[^\s]+|www\.[^\s]+)\b/g;
+      const text = newState.doc.textBetween(0, newState.doc.content.size, ' ', '\0');
+
+      const urlRegex = /\bhttps?:\/\/[^\s<>"']+\b/g;
       const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
-      const phoneRegex = /\b(\+?\d[\d\s]{7,})\b/g;
+      const phoneRegex = /\b(?:\+?\d{1,3}[ .-]?)?(?:\(?\d{1,4}\)?[ .-]?)*\d{2,4}\b/g;
 
-      newState.doc.descendants((node, pos) => {
-        if (!node.isText) return;
+      function applyLink(match, hrefPrefix = '') {
+        const href = hrefPrefix + match[0];
+        const start = text.indexOf(match[0]);
+        const end = start + match[0].length;
 
-        let text = node.text;
+        const mark = newState.schema.marks.link;
+        if (!mark) return;
 
-        if (!text) return;
-
-        let matches = [];
-        let combinedRegex = new RegExp(`${urlRegex.source}|${emailRegex.source}|${phoneRegex.source}`, 'g');
-
-        let match;
-        while ((match = combinedRegex.exec(text)) !== null) {
-          matches.push({ index: match.index, match: match[0] });
-        }
-
-        // Remove existing link marks to avoid duplicates
-        const existingLink = node.marks.find(m => m.type === linkMark);
-        if (existingLink && matches.length === 0) {
-          tr = tr.removeMark(pos, pos + node.nodeSize, linkMark);
-          modified = true;
-        }
-
-        for (let { index, match } of matches) {
-          let href = match;
-
-          if (emailRegex.test(match)) {
-            href = `mailto:${match}`;
-          } else if (phoneRegex.test(match)) {
-            const digits = match.replace(/\s+/g, '');
-            href = `tel:${digits}`;
-          } else if (!/^https?:\/\//.test(match)) {
-            href = `https://${match}`;
+        let hasMark = false;
+        newState.doc.nodesBetween(start, end, (node) => {
+          if (node.marks.some(m => m.type === mark && m.attrs.href === href)) {
+            hasMark = true;
           }
+        });
 
-          tr = tr.addMark(
-            pos + index,
-            pos + index + match.length,
-            linkMark.create({ href })
-          );
+        if (!hasMark) {
+          tr = tr.addMark(start, end, mark.create({ href }));
           modified = true;
         }
-      });
+      }
+
+      for (const match of text.matchAll(urlRegex)) {
+        applyLink(match, '');
+      }
+
+      for (const match of text.matchAll(emailRegex)) {
+        applyLink(match, 'mailto:');
+      }
+
+      for (const match of text.matchAll(phoneRegex)) {
+        const cleaned = match[0].replace(/[ .()-]/g, '');
+        if (cleaned.length >= 8 && /\d/.test(cleaned)) {
+          applyLink(match, 'tel:');
+        }
+      }
 
       return modified ? tr : null;
     }
