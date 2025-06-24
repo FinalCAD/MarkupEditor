@@ -3,7 +3,21 @@ import {tableNodes} from "prosemirror-tables"
 import {addListNodes} from "prosemirror-schema-list"
 import {default as OrderedMap} from "orderedmap"
 
-const pDOM = ["p", 0], 
+const ALIGNABLE_BLOCK = {
+    attrs: {
+        align: { default: "left" }
+    },
+    getAttrs: dom => ({
+        align: dom.style?.textAlign?.trim() || "left"
+    }),
+    getStyle: node =>
+    node.attrs.align !== "left"
+    ? { style: `text-align: ${node.attrs.align}` }
+    : {}
+};
+const ALIGNABLE_TYPES = ["paragraph", "heading"];
+
+const pDOM = ["p", 0],
       blockquoteDOM = ["blockquote", 0], 
       hrDOM = ["hr"],
       preDOM = ["pre", ["code", 0]], 
@@ -17,12 +31,13 @@ let baseNodes = OrderedMap.from({
 
   // :: NodeSpec A plain paragraph textblock. Represented in the DOM
   // as a `<p>` element.
-  paragraph: {
-    content: "inline*",
-    group: "block",
-    parseDOM: [{tag: "p"}],
-    toDOM() { return pDOM }
-  },
+    paragraph: {
+      content: "inline*",
+      group: "block",
+      attrs: { ...ALIGNABLE_BLOCK.attrs },
+      parseDOM: [{ tag: "p", getAttrs: ALIGNABLE_BLOCK.getAttrs }],
+      toDOM: node => ["p", ALIGNABLE_BLOCK.getStyle(node), 0]
+    },
 
   // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
   blockquote: {
@@ -43,19 +58,23 @@ let baseNodes = OrderedMap.from({
   // :: NodeSpec A heading textblock, with a `level` attribute that
   // should hold the number 1 to 6. Parsed and serialized as `<h1>` to
   // `<h6>` elements.
-  heading: {
-    attrs: {level: {default: 1}},
-    content: "inline*",
-    group: "block",
-    defining: true,
-    parseDOM: [{tag: "h1", attrs: {level: 1}},
-               {tag: "h2", attrs: {level: 2}},
-               {tag: "h3", attrs: {level: 3}},
-               {tag: "h4", attrs: {level: 4}},
-               {tag: "h5", attrs: {level: 5}},
-               {tag: "h6", attrs: {level: 6}}],
-    toDOM(node) { return ["h" + node.attrs.level, 0] }
-  },
+    heading: {
+        attrs: {
+            level: {default: 1},
+            ...ALIGNABLE_BLOCK.attrs
+        },
+      content: "inline*",
+      group: "block",
+      defining: true,
+        parseDOM: [1, 2, 3, 4, 5, 6].map(level => ({
+            tag: `h${level}`,
+            getAttrs: dom => ({
+                level,
+                ...ALIGNABLE_BLOCK.getAttrs(dom)
+            })
+        })),
+      toDOM(node) { return ["h" + node.attrs.level, ALIGNABLE_BLOCK.getStyle(node), 0] }
+    },
 
   // :: NodeSpec A code listing. Disallows marks or non-text inline
   // nodes by default. Represented as a `<pre>` element with a
@@ -333,18 +352,37 @@ export const marks = {
     parseDOM: [{tag: "sup"}, {style: "vertical-align: super"}],
     toDOM() { return supDOM }
   },
+    
+    span: {
+      group: 'inline',
+      attrs: {
+        style: {default:null}
+      },
+      parseDOM: [{
+        tag: "span",
+        getAttrs(dom) {
+          return {style: dom.getAttribute('style')}
+        }
+      }],
+      toDOM(node) {
+        let {style} = node.attrs;
+
+        return ['span', {style}, 0]
+      }
+    },
 
   // :: MarkSpec A strong mark. Rendered as `<strong>`, parse rules
   // also match `<b>` and `font-weight: bold`.
-  strong: {
-    parseDOM: [{tag: "strong"},
-               // This works around a Google Docs misbehavior where
-               // pasted content will be inexplicably wrapped in `<b>`
-               // tags with a font-weight normal.
-               {tag: "b", getAttrs: node => node.style.fontWeight != "normal" && null},
-               {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}],
-    toDOM() { return strongDOM }
-  },
+    strong: {
+      parseDOM: [{tag: "strong"},
+                 // This works around a Google Docs misbehavior where
+                 // pasted content will be inexplicably wrapped in `<b>`
+                 // tags with a font-weight normal.
+                 {tag: "b", getAttrs: node => node.style.fontWeight != "normal" && null},
+                 {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}
+                ],
+      toDOM() { return strongDOM }
+    },
 
   // :: MarkSpec Code font mark. Represented as a `<code>` element.
   code: {

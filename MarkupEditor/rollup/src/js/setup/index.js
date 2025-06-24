@@ -1,7 +1,7 @@
 import {keymap} from "prosemirror-keymap"
 import {history} from "prosemirror-history"
 import {baseKeymap} from "prosemirror-commands"
-import {AllSelection, NodeSelection, Plugin} from "prosemirror-state"
+import {AllSelection, NodeSelection, Plugin, PluginKey} from "prosemirror-state"
 import {dropCursor} from "prosemirror-dropcursor"
 import {gapCursor} from "prosemirror-gapcursor"
 import {Decoration, DecorationSet} from "prosemirror-view"
@@ -206,5 +206,5 @@ export function markupSetup(options) {
 
   plugins.push(autoSyncUnderlineColorPlugin)
     
-  return [];
+  return plugins;
 }

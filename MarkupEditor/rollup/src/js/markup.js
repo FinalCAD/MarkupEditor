@@ -8,7 +8,7 @@ import {AllSelection, TextSelection, NodeSelection, EditorState} from 'prosemirr
 import {DOMParser, DOMSerializer, ResolvedPos} from 'prosemirror-model'
 import {toggleMark, wrapIn, lift} from 'prosemirror-commands'
 import {undo, redo} from 'prosemirror-history'
-import {wrapInList, liftListItem, splitListItem} from 'prosemirror-schema-list'
+import {wrapInList, liftListItem, splitListItem, sinkListItem} from 'prosemirror-schema-list'
 import {
     addRowBefore, 
     addRowAfter, 
@@ -1686,6 +1686,152 @@ export function toggleSuperscript() {
     _toggleFormat('SUP');
 };
 
+export function setColor(color, backgroundColor) {
+    const markType = view.state.schema.marks.span;
+
+    let styleParts = [];
+    if (color) styleParts.push(`color: ${color}`);
+    if (backgroundColor) styleParts.push(`background-color: ${backgroundColor}`);
+    const style = styleParts.join('; ');
+    const attrs = { style };
+
+    const { selection } = view.state;
+    const { $cursor, ranges } = selection;
+
+    if ($cursor) {
+        view.dispatch(view.state.tr.removeStoredMark(markType));
+        if (style) {
+            view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
+        }
+    } else {
+        const tr = view.state.tr;
+        for (let i = 0; i < ranges.length; i++) {
+            let { $from, $to } = ranges[i];
+            let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+            if (from + spaceStart < to) {
+                from += spaceStart;
+                to -= spaceEnd;
+            }
+            tr.removeMark(from, to, markType);
+            if (style) {
+                tr.addMark(from, to, markType.create(attrs));
+            }
+        }
+        view.dispatch(tr.scrollIntoView());
+    }
+
+    stateChanged();
+}
+
+export function setTextAlignment(align, state = view.state, dispatch = view.dispatch) {
+    const { from, to } = state.selection;
+    let tr = state.tr;
+    let modified = false;
+
+    const ALIGNABLE_TYPES = ["paragraph", "heading", "list_item"];
+
+    state.doc.nodesBetween(from, to, (node, pos) => {
+        const name = node.type.name;
+
+        if (pos === 0) return;
+
+        const $pos = state.doc.resolve(pos);
+
+        // Search for list_item <li>
+        let hasAlignedParent = false;
+        for (let d = $pos.depth; d >= 1; d--) {
+            const parentNode = $pos.node(d);
+            const parentPos = $pos.before(d);
+
+            if (parentNode.type.name === "list_item") {
+                const currentAlign = parentNode.attrs.align || "left";
+                if (currentAlign !== align) {
+                    tr = tr.setNodeMarkup(parentPos, undefined, {
+                        ...parentNode.attrs,
+                        align: align
+                    });
+                    modified = true;
+                }
+                hasAlignedParent = true;
+                break;
+            }
+        }
+
+        // Don't align if it was done previously on a parent <li>
+        if (!hasAlignedParent && ALIGNABLE_TYPES.includes(name)) {
+            const currentAlign = node.attrs.align || "left";
+            if (currentAlign !== align) {
+                tr = tr.setNodeMarkup(pos, undefined, {
+                    ...node.attrs,
+                    align: align
+                });
+                modified = true;
+            }
+        }
+    });
+
+    if (modified && dispatch) {
+        dispatch(tr.scrollIntoView());
+        stateChanged();
+    }
+}
+
+export function toggleSelectionToLink(url) {
+  const { state, dispatch } = view;
+  const { selection, schema, tr, doc } = state;
+  const linkMarkType = schema.marks.link;
+
+  const cleanedUrl = typeof url === 'string' ? url.trim() : null;
+
+  if (selection.empty) {
+    if (!cleanedUrl) return;
+    const linkMark = linkMarkType.create({ href: cleanedUrl });
+    const textNode = schema.text(cleanedUrl, [linkMark]);
+    const transaction = tr.replaceSelectionWith(textNode, false);
+    const linkSelection = TextSelection.create(
+      transaction.doc,
+      selection.from,
+      selection.from + textNode.nodeSize
+    );
+    transaction.setSelection(linkSelection);
+    dispatch(transaction);
+  } else {
+    const selectedText = doc.textBetween(selection.from, selection.to, ' ', ' ').trim();
+    const hasLink = doc.rangeHasMark(selection.from, selection.to, linkMarkType);
+
+    if (hasLink || (!cleanedUrl && !selectedText)) {
+      dispatch(tr.removeMark(selection.from, selection.to, linkMarkType));
+    } else {
+      const finalUrl = cleanedUrl || selectedText;
+      const linkMark = linkMarkType.create({ href: finalUrl });
+      dispatch(tr.addMark(selection.from, selection.to, linkMark));
+    }
+  }
+
+  stateChanged();
+}
+
+export function getTextAlignment(state = view.state) {
+    const { from, to } = state.selection;
+    let foundAlign = null;
+
+    state.doc.nodesBetween(from, to, (node) => {
+        if (ALIGNABLE_TYPES.includes(node.type.name)) {
+            const align = node.attrs.align || "left";
+            if (foundAlign === null) {
+                foundAlign = align;
+            } else if (foundAlign !== align) {
+                foundAlign = null;
+                return false;
+            }
+        }
+    });
+
+    return foundAlign;
+}
+
 /**
  * Turn the format tag off and on for selection.
  * 
@@ -2117,60 +2263,99 @@ function updateNode(node, targetListType, targetListItemType, listTypes, listIte
  *
  */
 export function indent() {
-    const selection = view.state.selection;
-    const nodeTypes = view.state.schema.nodes;
-    let newState;
-    view.state.doc.nodesBetween(selection.from, selection.to, node => {
-        if (node.isBlock) {   
-            const command = wrapIn(nodeTypes.blockquote);
-            command(view.state, (transaction) => {
-                newState = view.state.apply(transaction);
-            });
-            return true;
-        };
-        return false;
-    });
-    if (newState) {
-        view.updateState(newState);
-        stateChanged();
-    }
-};
+    return adjustIndent('in');
+}
 
 /**
- * Do a context-sensitive outdent.
- *
- * If in a list, outdent the item to a less nested level in the list if appropriate.
- * If in a blockquote, remove a blockquote to outdent further.
- * Else, do nothing.
- *
- */
+* Do a context-sensitive outdent.
+*
+* If in a list, outdent the item to a less nested level in the list if appropriate.
+* If in a blockquote, remove a blockquote to outdent further.
+* Else, do nothing.
+*
+*/
 export function outdent() {
-    const selection = view.state.selection;
-    const blockquote = view.state.schema.nodes.blockquote;
-    const ul = view.state.schema.nodes.bullet_list;
-    const ol = view.state.schema.nodes.ordered_list;
-    let newState;
-    view.state.doc.nodesBetween(selection.from, selection.to, node => {
-        if ((node.type == blockquote) || (node.type == ul) || (node.type == ol)) {   
-            lift(view.state, (transaction) => {
-                // Note that some selections will not outdent, even though they
-                // contain outdentable items. For example, multiple blockquotes 
-                // within a selection cannot be outdented. However, multiple 
-                // blocks (e.g., p) can be outdented within a blockquote, because
-                // the selection is identifying the paragraphs to be outdented.
-                newState = view.state.apply(transaction);
-            });
-        };
-        return true;
-    });
-    if (newState) {
-        view.updateState(newState);
-        stateChanged();
-        return true;
-    } else {
-        return false;
+    return adjustIndent('out');
+}
+
+/**
+ * Check textAlign, if = "left" then indent / outdent by default
+ * if textAlign = "right" then indent / outdent in reverse
+ */
+function adjustIndent(type) {
+  const { state, dispatch } = view;
+  const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
+
+  const inList = isInList(state, bullet_list, ordered_list);
+
+  try {
+    if (type === 'in') {
+      if (inList) {
+        if (sinkListItem(list_item)(state, dispatch)) {
+          safeStateChanged();
+          return true;
+        }
+      } else {
+        if (wrapIn(blockquote)(state, dispatch)) {
+          safeStateChanged();
+          return true;
+        }
+      }
     }
-};
+
+    if (type === 'out') {
+      if (inList) {
+        if (liftListItem(list_item)(state, dispatch)) {
+          safeStateChanged();
+          return true;
+        }
+      } else {
+        if (lift(state, dispatch)) {
+          safeStateChanged();
+          return true;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Indent/Outdent error:", err);
+  }
+
+  return false;
+}
+
+function safeStateChanged() {
+  try {
+    stateChanged();
+  } catch (e) {
+    console.warn("stateChanged() failed:", e);
+  }
+}
+
+function isRightAligned(state) {
+  const { $from } = state.selection;
+  for (let d = $from.depth; d >= 0; d--) {
+    const node = $from.node(d);
+    const align = node.attrs?.align || null;
+    if (align === "right") return true;
+  }
+
+  const mark = state.schema.marks.align;
+  if (mark) {
+    const marks = state.storedMarks || state.selection.$from.marks();
+    return marks.some(m => m.type === mark && m.attrs?.align === "right");
+  }
+
+  return false;
+}
+
+function isInList(state, ...listTypes) {
+  const { $from } = state.selection;
+  for (let d = $from.depth; d > 0; d--) {
+    const node = $from.node(d);
+    if (listTypes.includes(node.type)) return true;
+  }
+  return false;
+}
 
 /********************************************************************************
  * Deal with modal input from the Swift side
@@ -2317,7 +2502,7 @@ const _getSelectionState = function() {
     };
     state['selrect'] = selrectDict;
     // Link
-    const linkAttributes = _getLinkAttributes();
+    const linkAttributes = getLinkAttributes();
     state['href'] = linkAttributes['href'];
     state['link'] = linkAttributes['link'];
     // Image
@@ -2354,6 +2539,14 @@ const _getSelectionState = function() {
     state['sub'] = markTypes.has(schema.marks.sub);
     state['sup'] = markTypes.has(schema.marks.sup);
     state['code'] = markTypes.has(schema.marks.code);
+    
+    const {backgroundColor, color} = getSpanAttributes();
+    state['backgroundColor'] = backgroundColor;
+    state['color'] = color;
+    
+    const textAlign = getTextAlignment();
+    state['textAlign'] = textAlign;
+    
     return state;
 };
 
@@ -2439,21 +2632,92 @@ function _getMarkTypes() {
  * Return the link attributes at the selection.
  * @returns {Object}   An Object whose properties are <a> attributes (like href, link) at the selection.
  */
-function _getLinkAttributes() {
-    const selection = view.state.selection;
-    const selectedNodes = [];
-    view.state.doc.nodesBetween(selection.from, selection.to, node => {
-        if (node.isText) selectedNodes.push(node);
-    });
-    const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-    if (selectedNode) {
-        const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.link)
-        if (linkMarks.length === 1) {
-            return {href: linkMarks[0].attrs.href, link: selectedNode.text};
+export function getLinkAttributes() {
+  const { state } = view;
+  const { selection, schema } = state;
+  const { $from, empty } = selection;
+
+  // Si c’est une sélection vide (curseur), on regarde autour
+  if (empty) {
+    const node = $from.nodeBefore || $from.nodeAfter;
+    if (node && node.isText) {
+      const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+      if (linkMark) {
+        return {
+          href: linkMark.attrs.href,
+          link: node.text
         };
-    };
-    return {};
-};
+      }
+    }
+  } else {
+    // Si du texte est sélectionné, on parcourt la sélection
+    let found = null;
+    state.doc.nodesBetween(selection.from, selection.to, (node) => {
+      if (node.isText) {
+        const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+        if (linkMark) {
+          found = {
+            href: linkMark.attrs.href,
+            link: node.text
+          };
+          return false; // Stop iteration early
+        }
+      }
+    });
+    if (found) return found;
+  }
+
+  return {};
+}
+
+export function getSpanAttributes() {
+  const selection = view.state.selection;
+  let colorSet = new Set();
+  let backgroundColorSet = new Set();
+
+  if (selection.empty && selection.$cursor) {
+    const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
+    marks.forEach(mark => {
+      const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
+        const [key, value] = el.split(':').map(v => v.trim());
+        if (key && value) dict[key] = value;
+        return dict;
+      }, {}) || {};
+
+      if (styles['color']) colorSet.add(styles['color']);
+      if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+    });
+  } else {
+    view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+      if (node.isText) {
+        node.marks
+          .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+          .forEach(mark => {
+            const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+              const [key, value] = el.split(':').map(v => v.trim());
+              if (key && value) dict[key] = value;
+              return dict;
+            }, {});
+
+            if (styles['color']) colorSet.add(styles['color']);
+            if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+          });
+      }
+    });
+  }
+
+  const result = {};
+
+  result.color = colorSet.size === 1
+    ? [...colorSet][0]
+    : (colorSet.size > 1 ? null : undefined);
+
+  result.backgroundColor = backgroundColorSet.size === 1
+    ? [...backgroundColorSet][0]
+    : (backgroundColorSet.size > 1 ? null : undefined);
+
+  return result;
+}
 
 /**
  * Return the image attributes at the selection
