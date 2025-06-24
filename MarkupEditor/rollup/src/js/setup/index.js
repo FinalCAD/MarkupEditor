@@ -263,5 +263,5 @@ export function markupSetup(options) {
     
   console.log("Liste de plugins finale :", pluginList.map(p => p.key?.key || "no-key"));
     
-  return plugins;
+  return [];
 }
