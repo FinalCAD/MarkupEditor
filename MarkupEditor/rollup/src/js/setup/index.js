@@ -261,5 +261,7 @@ export function markupSetup(options) {
 
   plugins.push(autoSyncUnderlineColorPlugin)
     
+  console.log("Liste de plugins finale :", pluginList.map(p => p.key?.key || "no-key"));
+    
   return plugins;
 }
