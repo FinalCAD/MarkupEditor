@@ -19226,10 +19226,6 @@
       applyAutoLink(window.view);
     }
   });
-    
-    window.addEventListener("input", () => {
-      console.log("Current HTML:", getHtml());
-    });
 
   /**
    * Capture all unexpected runtime errors in this script, report to the Swift side for debugging.
@@ -22173,6 +22169,11 @@
         schema: muSchema
       })
     }),
+      dispatchTransaction(tr) {
+        const newState = window.view.state.apply(tr);
+        window.view.updateState(newState);
+        stateChanged();
+      },
     nodeViews: {
       image(node, view, getPos) { return new ImageView(node, view, getPos) },
       div(node, view, getPos) { return new DivView(node, view, getPos) },
