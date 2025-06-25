@@ -22180,7 +22180,6 @@
     },
     // All text input notifies Swift that the document state has changed.
     handleTextInput() {
-      stateChanged();
       return false; // All the default behavior should occur
     },
     // Use createSelectionBetween to handle selection and click both.
