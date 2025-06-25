@@ -385,10 +385,12 @@ export const marks = {
     },
 
   // :: MarkSpec Code font mark. Represented as a `<code>` element.
-  code: {
-    parseDOM: [{tag: "code"}],
-    toDOM() { return codeDOM }
-  }
+    code: {
+      toDOM() {
+        return ['code', { class: 'inline-code' }, 0];
+      },
+      parseDOM: [{ tag: 'code' }]
+    }
 }
 
 // :: Schema

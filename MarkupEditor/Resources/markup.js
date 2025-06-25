@@ -14661,7 +14661,6 @@
 
   const emDOM = ["em", 0], 
         strongDOM = ["strong", 0], 
-        codeDOM = ["code", 0],
         strikeDOM = ["s", 0],
         subDOM = ["sub", 0],
         supDOM = ["sup", 0];
@@ -14771,10 +14770,12 @@
       },
 
     // :: MarkSpec Code font mark. Represented as a `<code>` element.
-    code: {
-      parseDOM: [{tag: "code"}],
-      toDOM() { return codeDOM }
-    }
+      code: {
+        toDOM() {
+          return ['code', { class: 'inline-code' }, 0];
+        },
+        parseDOM: [{ tag: 'code' }]
+      }
   };
 
   // :: Schema

@@ -285,3 +285,8 @@ li[style*="text-align"] {
   list-style-position: inside;
   text-align: inherit;
 }
+
+.inline-code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
