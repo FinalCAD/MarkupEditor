@@ -183,6 +183,11 @@ window.view = new EditorView(document.querySelector("#editor"), {
       schema: muSchema
     })
   }),
+    dispatchTransaction(tr) {
+      const newState = window.view.state.apply(tr);
+      window.view.updateState(newState);
+      stateChanged();
+    },
   nodeViews: {
     image(node, view, getPos) { return new ImageView(node, view, getPos) },
     div(node, view, getPos) { return new DivView(node, view, getPos) },
