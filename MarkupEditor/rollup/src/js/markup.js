@@ -2685,10 +2685,17 @@ function _getMarkTypes() {
 };
 
 function getFullyAppliedMarkTypes(state) {
-  const { from, to, empty, $from } = state.selection;
+  const selection = state?.selection;
+  if (!selection) {
+    console.warn("[getFullyAppliedMarkTypes] selection is empty");
+    return new Set();
+  }
+
+  const { from, to, empty } = selection;
+  const $from = selection.$from;
 
   if (empty) {
-    const marks = state.storedMarks || $from.marks();
+    const marks = state.storedMarks ?? $from?.marks() ?? [];
     return new Set(marks.map(mark => mark.type));
   }
 
