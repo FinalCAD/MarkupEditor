@@ -215,5 +215,11 @@ window.view = new EditorView(document.querySelector("#editor"), {
     selectionChanged();
     clicked();
     return null;                        // Default behavior should occur
-  }
+  },
+    handleDOMEvents: {
+      mousedown(view, event) {
+        clicked();
+        return false;
+      }
+    }
 })
