@@ -22132,7 +22132,7 @@
     plugins.push(search());
     plugins.push(searchModePlugin);
 
-//    plugins.push(autoSyncUnderlineColorPlugin);
+    plugins.push(autoSyncUnderlineColorPlugin);
       
     return plugins;
   }
