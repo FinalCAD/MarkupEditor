@@ -972,11 +972,11 @@ window.addEventListener('load', function() {
     _callback('ready');
 });
 
-window.addEventListener("blur", () => {
-  if (window.view) {
-    applyAutoLink(window.view);
-  }
-});
+//window.addEventListener("blur", () => {
+//  if (window.view) {
+//    applyAutoLink(window.view);
+//  }
+//});
 
 /**
  * Capture all unexpected runtime errors in this script, report to the Swift side for debugging.
