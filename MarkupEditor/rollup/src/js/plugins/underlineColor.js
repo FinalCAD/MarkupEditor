@@ -16,10 +16,8 @@ export const autoSyncUnderlineColorPlugin = new Plugin({
       if (!node.isText) return;
 
       const spanMark = node.marks.find(m => m.type.name === 'span');
-      if (!spanMark) return;
-
       const underlineMark = node.marks.find(m => m.type.name === 'underline');
-      if (!underlineMark) return;
+      if (!spanMark || !underlineMark) return;
 
       const style = spanMark.attrs.style || '';
       const colorMatch = style.match(/color:\s*([^;]+)/);
@@ -28,16 +26,22 @@ export const autoSyncUnderlineColorPlugin = new Plugin({
       const underlineColor = underlineMark.attrs?.color || null;
 
       if (spanColor && spanColor !== underlineColor) {
-        console.log(`[sync plugin] pos ${pos}: ${underlineColor} → ${spanColor}`);
-        tr = tr.removeMark(pos, pos + node.nodeSize, underlineMark.type);
-        tr = tr.addMark(pos, pos + node.nodeSize, underlineMark.type.create({ color: spanColor }));
+        const from = pos;
+        const to = pos + node.nodeSize;
+
+        const otherMarks = node.marks.filter(m => m.type.name !== 'underline');
+        const updatedUnderline = underlineMark.type.create({ color: spanColor });
+        const allMarks = [...otherMarks, updatedUnderline];
+
+        tr = tr.removeMark(from, to, underlineMark.type);
+        allMarks.forEach(mark => {
+          tr = tr.addMark(from, to, mark);
+        });
+
         modified = true;
       }
     });
 
-    if (modified) {
-      return tr;
-    }
-    return null;
+    return modified ? tr : null;
   }
 });
