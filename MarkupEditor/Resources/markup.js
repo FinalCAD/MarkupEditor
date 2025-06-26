@@ -15804,6 +15804,18 @@
   */
   const splitBlock = splitBlockAs();
   /**
+  Acts like [`splitBlock`](https://prosemirror.net/docs/ref/#commands.splitBlock), but without
+  resetting the set of active marks at the cursor.
+  */
+  const splitBlockKeepMarks = (state, dispatch) => {
+      return splitBlock(state, dispatch && (tr => {
+          let marks = state.storedMarks || (state.selection.$to.parentOffset && state.selection.$from.marks());
+          if (marks)
+              tr.ensureMarks(marks);
+          dispatch(tr);
+      }));
+  };
+  /**
   Move the selection to the node wrapping the current selection, if
   any. (Will not select the document node.)
   */
@@ -16059,7 +16071,7 @@
   * **Mod-a** to `selectAll`
   */
   const pcBaseKeymap = {
-      "Enter": chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlock),
+      "Enter": chainCommands(newlineInCode, createParagraphNear, liftEmptyBlock, splitBlockKeepMarks),
       "Mod-Enter": exitCode,
       "Backspace": backspace,
       "Mod-Backspace": backspace,
