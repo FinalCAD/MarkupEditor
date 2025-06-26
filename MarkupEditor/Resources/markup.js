@@ -22204,6 +22204,11 @@
       return null;                        // Default behavior should occur
     },
       handleDOMEvents: {
+        selectionchange() {
+            deactivateSearch()
+            selectionChanged()
+          return false;
+        },
         mousedown(view, event) {
           clicked();
           return false;

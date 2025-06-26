@@ -219,6 +219,11 @@ window.view = new EditorView(document.querySelector("#editor"), {
     return null;                        // Default behavior should occur
   },
     handleDOMEvents: {
+        selectionchange() {
+            deactivateSearch()
+            selectionChanged()
+          return false;
+        },
       mousedown(view, event) {
         clicked();
         return false;
