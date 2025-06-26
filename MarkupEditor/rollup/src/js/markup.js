@@ -1852,26 +1852,26 @@ function _toggleFormat(type) {
     let toggle;
     switch (type) {
         case 'B':
-            toggle = toggleMark(state.schema.marks.strong);
+            toggle = smartToggleMark(state.schema.marks.strong);
             break;
         case 'I':
-            toggle = toggleMark(state.schema.marks.em);
+            toggle = smartToggleMark(state.schema.marks.em);
             break;
         case 'U':
-            toggle = toggleMark(state.schema.marks.underline);
-//            toggle = toggleMark(state.schema.marks.u);
+            toggle = smartToggleMark(state.schema.marks.underline);
+//            toggle = smartToggleMark(state.schema.marks.u);
             break;
         case 'CODE':
-            toggle = toggleMark(state.schema.marks.code);
+            toggle = smartToggleMark(state.schema.marks.code);
             break;
         case 'DEL':
-            toggle = toggleMark(state.schema.marks.s);
+            toggle = smartToggleMark(state.schema.marks.s);
             break;
         case 'SUB':
-            toggle = toggleMark(state.schema.marks.sub);
+            toggle = smartToggleMark(state.schema.marks.sub);
             break;
         case 'SUP':
-            toggle = toggleMark(state.schema.marks.sup);
+            toggle = smartToggleMark(state.schema.marks.sup);
             break;
     };  
     if (toggle) {
@@ -1879,6 +1879,72 @@ function _toggleFormat(type) {
         stateChanged()
     };
 };
+
+function markApplies(doc, ranges, type, enterAtoms) {
+    for (let i = 0; i < ranges.length; i++) {
+        let { $from, $to } = ranges[i];
+        let can = $from.depth == 0 ? doc.inlineContent && doc.type.allowsMarkType(type) : false;
+        doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+            if (can || false)
+                return false;
+            can = node.inlineContent && node.type.allowsMarkType(type);
+        });
+        if (can)
+            return true;
+    }
+    return false;
+}
+
+function smartToggleMark(markType, attrs = null, options) {
+  return function (state, dispatch) {
+    let { empty, $cursor, ranges } = state.selection;
+    if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType)) return false;
+
+    if (dispatch) {
+      if ($cursor) {
+        // Si caret → toggle sur storedMarks
+        if (markType.isInSet(state.storedMarks || $cursor.marks())) {
+          dispatch(state.tr.removeStoredMark(markType));
+        } else {
+          dispatch(state.tr.addStoredMark(markType.create(attrs)));
+        }
+      } else {
+        // Vérifie si toute la sélection est déjà marquée
+        let allMarked = ranges.every(r =>
+          state.doc.rangeHasMark(r.$from.pos, r.$to.pos, markType)
+        );
+
+        let tr = state.tr;
+
+        for (let i = 0; i < ranges.length; i++) {
+          let { $from, $to } = ranges[i];
+          if (allMarked) {
+            tr.removeMark($from.pos, $to.pos, markType);
+          } else {
+            let from = $from.pos,
+              to = $to.pos,
+              start = $from.nodeAfter,
+              end = $to.nodeBefore;
+
+            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+
+            if (from + spaceStart < to) {
+              from += spaceStart;
+              to -= spaceEnd;
+            }
+
+            tr.addMark(from, to, markType.create(attrs));
+          }
+        }
+
+        dispatch(tr.scrollIntoView());
+      }
+    }
+
+    return true;
+  };
+}
 
 /********************************************************************************
  * Styling
@@ -3062,7 +3128,7 @@ export function insertLink(url) {
         transaction.setSelection(linkSelection);
         view.dispatch(transaction);
     } else {
-        const toggle = toggleMark(linkMark.type, linkMark.attrs);
+        const toggle = smartToggleMark(linkMark.type, linkMark.attrs);
         if (toggle) toggle(view.state, view.dispatch);
     };
     stateChanged();
@@ -3101,7 +3167,7 @@ export function deleteLink() {
     let state = view.state.apply(transaction);
 
     // Then toggle the link off and reset the selection
-    const toggle = toggleMark(linkType);
+    const toggle = smartToggleMark(linkType);
     if (toggle) {
         toggle(state, (tr) => {
             state = state.apply(tr);   // Toggle the link off
