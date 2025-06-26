@@ -20763,7 +20763,7 @@
       state['li'] = state['list'] !== null;   // We are always in a li by definition for ProseMirror, right?
       state['quote'] = _getIndented();
       // Format
-      const markTypes = _getMarkTypes();
+      const markTypes = getFullyAppliedMarkTypes();
       const schema = view.state.schema;
       state['bold'] = markTypes.has(schema.marks.strong);
       state['italic'] = markTypes.has(schema.marks.em);
@@ -20839,25 +20839,39 @@
       const right = Math.max(fromCoords.right, toCoords.right);
       return {top: top, bottom: bottom, left: left, right: right};
   }
-  /**
-   * Return the MarkTypes that exist at the selection.
-   * @returns {Set<MarkType>}   The set of MarkTypes at the selection.
-   */
-  function _getMarkTypes() {
-      const state = view.state;
-      const {from, $from, to, empty} = state.selection;
-      if (empty) {
-          const marks = state.storedMarks || $from.marks();
-          const markTypes = marks.map(mark => { return mark.type });
-          return new Set(markTypes);
-      } else {
-          const markTypes = new Set();
-          state.doc.nodesBetween(from, to, node => {
-              node.marks.forEach(mark => markTypes.add(mark.type));
-          });
-          return markTypes;
+  function getFullyAppliedMarkTypes(state) {
+    const { from, to, empty, $from } = state.selection;
+
+    if (empty) {
+      const marks = state.storedMarks || $from.marks();
+      return new Set(marks.map(mark => mark.type));
+    }
+
+    const markCounts = new Map();
+    let textNodeCount = 0;
+
+    state.doc.nodesBetween(from, to, node => {
+      if (!node.isText) return;
+
+      textNodeCount++;
+
+      node.marks.forEach(mark => {
+        const count = markCounts.get(mark.type) || 0;
+        markCounts.set(mark.type, count + 1);
+      });
+    });
+
+    const fullyAppliedMarks = new Set();
+    for (let [markType, count] of markCounts.entries()) {
+      if (count === textNodeCount) {
+        fullyAppliedMarks.add(markType);
       }
+    }
+
+    return fullyAppliedMarks;
   }
+
+
   /**
    * Return the link attributes at the selection.
    * @returns {Object}   An Object whose properties are <a> attributes (like href, link) at the selection.

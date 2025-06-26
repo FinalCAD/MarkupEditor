@@ -2586,7 +2586,7 @@ const _getSelectionState = function() {
     state['li'] = state['list'] !== null;   // We are always in a li by definition for ProseMirror, right?
     state['quote'] = _getIndented();
     // Format
-    const markTypes = _getMarkTypes();
+    const markTypes = getFullyAppliedMarkTypes();
     const schema = view.state.schema;
     state['bold'] = markTypes.has(schema.marks.strong);
     state['italic'] = markTypes.has(schema.marks.em);
@@ -2683,6 +2683,39 @@ function _getMarkTypes() {
         return markTypes;
     }
 };
+
+function getFullyAppliedMarkTypes(state) {
+  const { from, to, empty, $from } = state.selection;
+
+  if (empty) {
+    const marks = state.storedMarks || $from.marks();
+    return new Set(marks.map(mark => mark.type));
+  }
+
+  const markCounts = new Map();
+  let textNodeCount = 0;
+
+  state.doc.nodesBetween(from, to, node => {
+    if (!node.isText) return;
+
+    textNodeCount++;
+
+    node.marks.forEach(mark => {
+      const count = markCounts.get(mark.type) || 0;
+      markCounts.set(mark.type, count + 1);
+    });
+  });
+
+  const fullyAppliedMarks = new Set();
+  for (let [markType, count] of markCounts.entries()) {
+    if (count === textNodeCount) {
+      fullyAppliedMarks.add(markType);
+    }
+  }
+
+  return fullyAppliedMarks;
+}
+
 
 /**
  * Return the link attributes at the selection.
