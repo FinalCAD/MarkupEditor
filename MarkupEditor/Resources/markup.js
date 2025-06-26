@@ -22169,19 +22169,18 @@
         schema: muSchema
       })
     }),
-      dispatchTransaction(tr) {
-        const newState = window.view.state.apply(tr);
-        window.view.updateState(newState);
-        stateChanged();
-      },
+//      dispatchTransaction(tr) {
+//        const newState = window.view.state.apply(tr);
+//        window.view.updateState(newState);
+//        stateChanged();
+//      },
     nodeViews: {
       image(node, view, getPos) { return new ImageView(node, view, getPos) },
       div(node, view, getPos) { return new DivView(node, view, getPos) },
     },
     // All text input notifies Swift that the document state has changed.
     handleTextInput() {
-      deactivateSearch();
-      selectionChanged();
+      stateChanged();
       return false; // All the default behavior should occur
     },
     // Use createSelectionBetween to handle selection and click both.
