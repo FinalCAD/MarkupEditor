@@ -20839,37 +20839,37 @@
       const right = Math.max(fromCoords.right, toCoords.right);
       return {top: top, bottom: bottom, left: left, right: right};
   }
-  function getFullyAppliedMarkTypes(state) {
-    const { from, to, empty, $from } = state.selection;
+    function getFullyAppliedMarkTypes(state) {
+      const { from, to, empty, $from } = state.selection;
 
-    if (empty) {
-      const marks = state.storedMarks || $from.marks();
-      return new Set(marks.map(mark => mark.type));
-    }
-
-    const markCounts = new Map();
-    let textNodeCount = 0;
-
-    state.doc.nodesBetween(from, to, node => {
-      if (!node.isText) return;
-
-      textNodeCount++;
-
-      node.marks.forEach(mark => {
-        const count = markCounts.get(mark.type) || 0;
-        markCounts.set(mark.type, count + 1);
-      });
-    });
-
-    const fullyAppliedMarks = new Set();
-    for (let [markType, count] of markCounts.entries()) {
-      if (count === textNodeCount) {
-        fullyAppliedMarks.add(markType);
+      if (empty) {
+        const marks = state.storedMarks || $from.marks();
+        return new Set(marks.map(mark => mark.type));
       }
-    }
 
-    return fullyAppliedMarks;
-  }
+      const markCounts = new Map();
+      let textNodeCount = 0;
+
+      state.doc.nodesBetween(from, to, node => {
+        if (!node.isText) return;
+
+        textNodeCount++;
+
+        node.marks.forEach(mark => {
+          const count = markCounts.get(mark.type) || 0;
+          markCounts.set(mark.type, count + 1);
+        });
+      });
+
+      const fullyAppliedMarks = new Set();
+      for (let [markType, count] of markCounts.entries()) {
+        if (count === textNodeCount && textNodeCount > 0) {
+          fullyAppliedMarks.add(markType);
+        }
+      }
+
+      return fullyAppliedMarks;
+    }
 
 
   /**

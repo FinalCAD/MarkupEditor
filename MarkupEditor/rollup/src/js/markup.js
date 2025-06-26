@@ -2708,7 +2708,7 @@ function getFullyAppliedMarkTypes(state) {
 
   const fullyAppliedMarks = new Set();
   for (let [markType, count] of markCounts.entries()) {
-    if (count === textNodeCount) {
+    if (count === textNodeCount && textNodeCount > 0) {
       fullyAppliedMarks.add(markType);
     }
   }
