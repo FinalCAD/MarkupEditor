@@ -1880,61 +1880,29 @@ function _toggleFormat(type) {
     };
 };
 
-function markApplies(doc, ranges, type, enterAtoms) {
-    for (let i = 0; i < ranges.length; i++) {
-        let { $from, $to } = ranges[i];
-        let can = $from.depth == 0 ? doc.inlineContent && doc.type.allowsMarkType(type) : false;
-        doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-            if (can || false)
-                return false;
-            can = node.inlineContent && node.type.allowsMarkType(type);
-        });
-        if (can)
-            return true;
-    }
-    return false;
-}
-
-function smartToggleMark(markType, attrs = null, options) {
+function smartToggleMark(markType, attrs = null) {
   return function (state, dispatch) {
-    let { empty, $cursor, ranges } = state.selection;
-    if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType)) return false;
+    const { empty, $cursor, ranges } = state.selection;
+
+    if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType))
+      return false;
 
     if (dispatch) {
       if ($cursor) {
-        // Si caret → toggle sur storedMarks
-        if (markType.isInSet(state.storedMarks || $cursor.marks())) {
-          dispatch(state.tr.removeStoredMark(markType));
-        } else {
-          dispatch(state.tr.addStoredMark(markType.create(attrs)));
-        }
+        const has = markType.isInSet(state.storedMarks || $cursor.marks());
+        dispatch(state.tr[has ? 'removeStoredMark' : 'addStoredMark'](markType.create(attrs)));
       } else {
-        // Vérifie si toute la sélection est déjà marquée
-        let allMarked = ranges.every(r =>
-          state.doc.rangeHasMark(r.$from.pos, r.$to.pos, markType)
+        // Check if all text in range has the mark
+        const allMarked = ranges.every(({ $from, $to }) =>
+          rangeIsFullyMarked(state.doc, $from.pos, $to.pos, markType)
         );
 
         let tr = state.tr;
-
-        for (let i = 0; i < ranges.length; i++) {
-          let { $from, $to } = ranges[i];
+        for (let { $from, $to } of ranges) {
           if (allMarked) {
-            tr.removeMark($from.pos, $to.pos, markType);
+            tr = tr.removeMark($from.pos, $to.pos, markType);
           } else {
-            let from = $from.pos,
-              to = $to.pos,
-              start = $from.nodeAfter,
-              end = $to.nodeBefore;
-
-            let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
-            let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
-
-            if (from + spaceStart < to) {
-              from += spaceStart;
-              to -= spaceEnd;
-            }
-
-            tr.addMark(from, to, markType.create(attrs));
+            tr = tr.addMark($from.pos, $to.pos, markType.create(attrs));
           }
         }
 
@@ -1945,6 +1913,21 @@ function smartToggleMark(markType, attrs = null, options) {
     return true;
   };
 }
+
+function rangeIsFullyMarked(doc, from, to, markType) {
+  let fullyMarked = true;
+  doc.nodesBetween(from, to, (node, pos) => {
+    if (!node.isText) return;
+
+    const hasMark = markType.isInSet(node.marks);
+    if (!hasMark) {
+      fullyMarked = false;
+      return false; // Stop early
+    }
+  });
+  return fullyMarked;
+}
+
 
 /********************************************************************************
  * Styling
