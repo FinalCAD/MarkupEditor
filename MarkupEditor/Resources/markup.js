@@ -20839,7 +20839,8 @@
       const right = Math.max(fromCoords.right, toCoords.right);
       return {top: top, bottom: bottom, left: left, right: right};
   }
-    function getFullyAppliedMarkTypes(state) {
+    function getFullyAppliedMarkTypes() {
+      const state = view.state;
       const selection = state?.selection;
       if (!selection) {
         console.warn("[getFullyAppliedMarkTypes] selection is empty");
