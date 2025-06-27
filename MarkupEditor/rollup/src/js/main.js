@@ -43,6 +43,12 @@ import {
   toggleListItem,
   indent,
   outdent,
+  setColor,
+  setTextAlignment,
+  toggleSelectionToLink,
+  getTextAlignment,
+  getLinkAttributes,
+  getSpanAttributes,
   startModalInput,
   endModalInput,
   getSelectionState,
@@ -111,6 +117,12 @@ export {
   toggleListItem,
   indent,
   outdent,
+  setColor,
+  setTextAlignment,
+  toggleSelectionToLink,
+  getTextAlignment,
+  getLinkAttributes,
+  getSpanAttributes,
   startModalInput,
   endModalInput,
   getSelectionState,
@@ -171,13 +183,17 @@ window.view = new EditorView(document.querySelector("#editor"), {
       schema: muSchema
     })
   }),
+    dispatchTransaction(tr) {
+      const newState = window.view.state.apply(tr);
+      window.view.updateState(newState);
+      stateChanged();
+    },
   nodeViews: {
     image(node, view, getPos) { return new ImageView(node, view, getPos) },
     div(node, view, getPos) { return new DivView(node, view, getPos) },
   },
   // All text input notifies Swift that the document state has changed.
   handleTextInput() {
-    stateChanged();
     return false; // All the default behavior should occur
   },
   // Use createSelectionBetween to handle selection and click both.
@@ -199,5 +215,11 @@ window.view = new EditorView(document.querySelector("#editor"), {
     selectionChanged();
     clicked();
     return null;                        // Default behavior should occur
-  }
+  },
+    handleDOMEvents: {
+      mousedown(view, event) {
+        clicked();
+        return false;
+      }
+    }
 })

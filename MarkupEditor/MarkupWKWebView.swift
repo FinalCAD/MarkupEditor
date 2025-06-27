@@ -1190,13 +1190,24 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
-    @objc public func setColor(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil) {
+    @objc public func setColor(foregroundColor: String? = nil, backgroundColor: String? = nil) {
         color(foregroundColor: foregroundColor, backgroundColor: backgroundColor, handler: nil)
     }
     
-    public func color(foregroundColor: UIColor? = nil, backgroundColor: UIColor? = nil, handler: (()->Void)? = nil) {
-        evaluateJavaScript("MU.setColor('\(foregroundColor?.toWebRgb() ?? "")', '\(backgroundColor?.toWebRgb() ?? "")')") { result, error in
+    public func color(foregroundColor: String? = nil, backgroundColor: String? = nil, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.setColor('\(foregroundColor ?? "")', '\(backgroundColor ?? "")')") { result, error in
             print("color : \(result) \(error)")
+            handler?()
+        }
+    }
+    
+    @objc public func toggleSelectionToLink(link: String? = nil) {
+        toggleSelectionToLinkMU(link: link, handler: nil)
+    }
+    
+    public func toggleSelectionToLinkMU(link: String? = nil, handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.toggleSelectionToLink('\(link ?? "")')") { result, error in
+            print("toggleSelectionToLink : \(result) \(error)")
             handler?()
         }
     }
@@ -1308,17 +1319,23 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         selectionState.code = stateDictionary["code"] as? Bool ?? false
         
         selectionState.foregroundColor = if let rawColor = stateDictionary["color"] as? String, rawColor.isEmpty == false {
-            try? UIColor(rgba: rawColor)
+            rawColor
         } else {
             nil
         }
         
         selectionState.backgroundColor = if let rawColor = stateDictionary["backgroundColor"] as? String, rawColor.isEmpty == false {
-            try? UIColor(rgba: rawColor)
+            rawColor
         } else {
             nil
         }
         
+        if let textAlign = stateDictionary["textAlign"] as? String {
+            selectionState.textAlign = textAlign
+        } else {
+            selectionState.textAlign = "left"
+        }
+
         return selectionState
     }
     

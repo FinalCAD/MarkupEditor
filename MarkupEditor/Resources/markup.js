@@ -14111,7 +14111,22 @@
     "tableColumnResizing"
   );
 
-  const olDOM = ["ol", 0], ulDOM = ["ul", 0], liDOM = ["li", 0];
+    const olDOM = ["ol", 0], ulDOM = ["ul", 0], liDOM = ["li", 0];
+
+      const ALIGNABLE_BLOCK = {
+          attrs: {
+              align: { default: "left" }
+          },
+          getAttrs: dom => ({
+              align: dom.style?.textAlign?.trim() || "left"
+          }),
+          getStyle: node =>
+          node.attrs.align !== "left"
+          ? { style: `text-align: ${node.attrs.align}` }
+          : {}
+      };
+      const ALIGNABLE_TYPES = ["paragraph", "heading"];
+
   /**
   An ordered list [node spec](https://prosemirror.net/docs/ref/#model.NodeSpec). Has a single
   attribute, `order`, which determines the number at which the list
@@ -14138,9 +14153,18 @@
   A list item (`<li>`) spec.
   */
   const listItem = {
-      parseDOM: [{ tag: "li" }],
-      toDOM() { return liDOM; },
-      defining: true
+    content: "paragraph block*",
+    defining: true,
+    attrs: {
+      ...ALIGNABLE_BLOCK.attrs
+    },
+    parseDOM: [{
+      tag: "li",
+      getAttrs: ALIGNABLE_BLOCK.getAttrs
+    }],
+    toDOM(node) {
+      return ["li", ALIGNABLE_BLOCK.getStyle(node), 0];
+    }
   };
   function add(obj, props) {
       let copy = {};
@@ -14380,11 +14404,11 @@
       };
   }
 
-  const pDOM = ["p", 0], 
-        blockquoteDOM = ["blockquote", 0], 
-        hrDOM = ["hr"],
-        preDOM = ["pre", ["code", 0]], 
-        brDOM = ["br"];
+    const pDOM = ["p", 0],
+          blockquoteDOM = ["blockquote", 0],
+          hrDOM = ["hr"],
+          preDOM = ["pre", ["code", 0]],
+          brDOM = ["br"];
 
   let baseNodes = OrderedMap.from({
     // :: NodeSpec The top level document node.
@@ -14394,12 +14418,13 @@
 
     // :: NodeSpec A plain paragraph textblock. Represented in the DOM
     // as a `<p>` element.
-    paragraph: {
-      content: "inline*",
-      group: "block",
-      parseDOM: [{tag: "p"}],
-      toDOM() { return pDOM }
-    },
+      paragraph: {
+        content: "inline*",
+        group: "block",
+        attrs: { ...ALIGNABLE_BLOCK.attrs },
+        parseDOM: [{ tag: "p", getAttrs: ALIGNABLE_BLOCK.getAttrs }],
+        toDOM: node => ["p", ALIGNABLE_BLOCK.getStyle(node), 0]
+      },
 
     // :: NodeSpec A blockquote (`<blockquote>`) wrapping one or more blocks.
     blockquote: {
@@ -14420,19 +14445,23 @@
     // :: NodeSpec A heading textblock, with a `level` attribute that
     // should hold the number 1 to 6. Parsed and serialized as `<h1>` to
     // `<h6>` elements.
-    heading: {
-      attrs: {level: {default: 1}},
-      content: "inline*",
-      group: "block",
-      defining: true,
-      parseDOM: [{tag: "h1", attrs: {level: 1}},
-                 {tag: "h2", attrs: {level: 2}},
-                 {tag: "h3", attrs: {level: 3}},
-                 {tag: "h4", attrs: {level: 4}},
-                 {tag: "h5", attrs: {level: 5}},
-                 {tag: "h6", attrs: {level: 6}}],
-      toDOM(node) { return ["h" + node.attrs.level, 0] }
-    },
+      heading: {
+          attrs: {
+              level: {default: 1},
+              ...ALIGNABLE_BLOCK.attrs
+          },
+        content: "inline*",
+        group: "block",
+        defining: true,
+          parseDOM: [1, 2, 3, 4, 5, 6].map(level => ({
+              tag: `h${level}`,
+              getAttrs: dom => ({
+                  level,
+                  ...ALIGNABLE_BLOCK.getAttrs(dom)
+              })
+          })),
+        toDOM(node) { return ["h" + node.attrs.level, ALIGNABLE_BLOCK.getStyle(node), 0] }
+      },
 
     // :: NodeSpec A code listing. Disallows marks or non-text inline
     // nodes by default. Represented as a `<pre>` element with a
@@ -14632,11 +14661,35 @@
 
   const emDOM = ["em", 0], 
         strongDOM = ["strong", 0], 
-        codeDOM = ["code", 0],
         strikeDOM = ["s", 0],
-        uDOM = ["u", 0],
         subDOM = ["sub", 0],
         supDOM = ["sup", 0];
+
+  const underlineMark = {
+    attrs: {
+      color: { default: null }
+    },
+    parseDOM: [{
+      tag: "span[style*='text-decoration']",
+      getAttrs(dom) {
+        const style = dom.getAttribute("style") || "";
+        const hasUnderline = /text-decoration:\s*underline/.test(style);
+        if (!hasUnderline) return false;
+
+        const colorMatch = style.match(/text-decoration-color:\s*([^;]+)/);
+        return {
+          color: colorMatch ? colorMatch[1].trim() : null
+        };
+      }
+    }],
+    toDOM(mark) {
+      const style = [
+        "text-decoration: underline",
+        mark.attrs.color && `text-decoration-color: ${mark.attrs.color}`
+      ].filter(Boolean).join("; ");
+      return ["span", { style }, 0];
+    }
+  };
 
   // :: Object [Specs](#model.MarkSpec) for the marks in the schema.
   const marks = {
@@ -14668,10 +14721,12 @@
       toDOM() { return strikeDOM }
     },
 
-    u: {
-      parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
-      toDOM() { return uDOM }
-    },
+  //  u: {
+  //    parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
+  //    toDOM() { return uDOM }
+  //  },
+      
+      underline: underlineMark,
 
     sub: {
       parseDOM: [{tag: "sub"}, {style: "vertical-align: sub"}],
@@ -14682,43 +14737,45 @@
       parseDOM: [{tag: "sup"}, {style: "vertical-align: super"}],
       toDOM() { return supDOM }
     },
+      
+      span: {
+        group: 'inline',
+        attrs: {
+          style: {default:null}
+        },
+        parseDOM: [{
+          tag: "span",
+          getAttrs(dom) {
+            return {style: dom.getAttribute('style')}
+          }
+        }],
+        toDOM(node) {
+          let {style} = node.attrs;
 
-    span: {
-      group: 'inline',
-      attrs: {
-        style: {default:null}
-      },
-      parseDOM: [{ 
-        tag: "span", 
-        getAttrs(dom) {
-          return {style: dom.getAttribute('style')}
+          return ['span', {style}, 0]
         }
-      }],
-      toDOM(node) { 
-        let {style} = node.attrs;
-
-        return ['span', {style}, 0] 
-      }
-    },
+      },
 
     // :: MarkSpec A strong mark. Rendered as `<strong>`, parse rules
     // also match `<b>` and `font-weight: bold`.
-    strong: {
-      parseDOM: [{tag: "strong"},
-                 // This works around a Google Docs misbehavior where
-                 // pasted content will be inexplicably wrapped in `<b>`
-                 // tags with a font-weight normal.
-                 {tag: "b", getAttrs: node => node.style.fontWeight != "normal" && null},
-                 {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}
-                ],
-      toDOM() { return strongDOM }
-    },
+      strong: {
+        parseDOM: [{tag: "strong"},
+                   // This works around a Google Docs misbehavior where
+                   // pasted content will be inexplicably wrapped in `<b>`
+                   // tags with a font-weight normal.
+                   {tag: "b", getAttrs: node => node.style.fontWeight != "normal" && null},
+                   {style: "font-weight", getAttrs: value => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null}
+                  ],
+        toDOM() { return strongDOM }
+      },
 
     // :: MarkSpec Code font mark. Represented as a `<code>` element.
-    code: {
-      parseDOM: [{tag: "code"}],
-      toDOM() { return codeDOM }
-    }
+      code: {
+        toDOM() {
+          return ['code', { class: 'inline-code' }, 0];
+        },
+        parseDOM: [{ tag: 'code' }]
+      }
   };
 
   // :: Schema
@@ -15705,7 +15762,7 @@
           let splitDepth, deflt, atEnd = false, atStart = false;
           for (let d = $from.depth;; d--) {
               let node = $from.node(d);
-              if (node && node.isBlock) {
+              if (node.isBlock) {
                   atEnd = $from.end(d) == $from.pos + ($from.depth - d);
                   atStart = $from.start(d) == $from.pos - ($from.depth - d);
                   deflt = defaultBlockAt($from.node(d - 1).contentMatchAt($from.indexAfter(d - 1)));
@@ -15746,18 +15803,18 @@
   selection, also delete its content.
   */
   const splitBlock = splitBlockAs();
-
-// :: (EditorState, ?(tr: Transaction)) → Bool
-// Acts like [`splitBlock`](#commands.splitBlock), but without
-// resetting the set of active marks at the cursor.
-function splitBlockKeepMarks(state, dispatch) {
-  return splitBlock(state, dispatch && (tr => {
-    let marks = state.storedMarks || (state.selection.$to.parentOffset && state.selection.$from.marks())
-    if (marks) tr.setStoredMarks(marks)
-    dispatch(tr)
-  }))
-}
-
+  /**
+  Acts like [`splitBlock`](https://prosemirror.net/docs/ref/#commands.splitBlock), but without
+  resetting the set of active marks at the cursor.
+  */
+  const splitBlockKeepMarks = (state, dispatch) => {
+      return splitBlock(state, dispatch && (tr => {
+          let marks = state.storedMarks || (state.selection.$to.parentOffset && state.selection.$from.marks());
+          if (marks)
+              tr.ensureMarks(marks);
+          dispatch(tr);
+      }));
+  };
   /**
   Move the selection to the node wrapping the current selection, if
   any. (Will not select the document node.)
@@ -17815,7 +17872,7 @@ function splitBlockKeepMarks(state, dispatch) {
   // Given a schema, look for default mark and node types in it and
   // return an object with relevant menu items relating to those marks:
   //
-  // **`rong`**`: MenuItem`
+  // **`toggleStrong`**`: MenuItem`
   //   : A menu item to toggle the [strong mark](#schema-basic.StrongMark).
   //
   // **`toggleEm`**`: MenuItem`
@@ -17872,7 +17929,7 @@ function splitBlockKeepMarks(state, dispatch) {
   function buildMenuItems(schema) {
     let r = {}, type;
     if (type = schema.marks.strong)
-      r.rong = markItem(type, {title: "Toggle strong style", icon: icons.strong});
+      r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: icons.strong});
     if (type = schema.marks.em)
       r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: icons.em});
     if (type = schema.marks.u)
@@ -17957,7 +18014,7 @@ function splitBlockKeepMarks(state, dispatch) {
       r.splitCell, 
       r.toggleHeaderRow]), { label: 'Table' });
 
-    r.inlineMenu = [cut([r.rong, r.toggleEm, r.toggleU, r.toggleCode, r.toggleS, r.toggleLink])];
+    r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleU, r.toggleCode, r.toggleS, r.toggleLink])];
     r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, joinUpItem,
                         liftItem, selectParentNodeItem])];
     r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu, r.tableMenu]], [[undoItem, redoItem]], r.blockMenu);
@@ -18187,6 +18244,70 @@ function splitBlockKeepMarks(state, dispatch) {
               .delete(start, end)
               .setBlockType(start, start, nodeType, attrs);
       });
+  }
+
+  //
+  //  autoLink.js
+  //  MarkupEditor
+  //
+  //  Created by Antoine CHINAULT on 24/06/2025.
+  //
+
+  function applyAutoLink(view) {
+      const { state } = view;
+      const { tr } = state;
+      let modified = false;
+      const linkMark = state.schema.marks.link;
+      if (!linkMark) return;
+      
+      const textLinkPatterns = [
+          {
+              type: 'url',
+              regex: /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9\-._~%]+(?:\.[a-z]{2,})(?:\/[^\s]*)?\b/gi,
+              getHref: (match) => match.startsWith('http') ? match : `https://${match}`
+          },
+          {
+              type: 'email',
+              regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+              getHref: (match) => `mailto:${match}`
+          },
+          {
+              type: 'phone',
+              regex: /\b\+?[0-9]{1,3}?[-.\s]?(\(?\d{1,4}\)?[-.\s]?)*\d{3,4}[-.\s]?\d{3,4}\b/g,
+              getHref: (match) => `tel:${match.replace(/[^\d+]/g, '')}`
+          }
+      ];
+      
+      state.doc.descendants((node, pos) => {
+          if (!node.isText || !node.text) return;
+          
+          const text = node.text;
+          
+          // Supprimer tous les anciens liens
+          node.marks.forEach((mark) => {
+              if (mark.type === linkMark) {
+                  tr.removeMark(pos, pos + node.nodeSize, linkMark);
+                  modified = true;
+              }
+          });
+          
+          textLinkPatterns.forEach(({ regex, getHref }) => {
+              let match;
+              while ((match = regex.exec(text)) !== null) {
+                  const fullMatch = match[0];
+                  const start = match.index;
+                  const end = start + fullMatch.length;
+                  const from = pos + start;
+                  const to = pos + end;
+                  const href = getHref(fullMatch);
+                  
+                  tr.addMark(from, to, linkMark.create({ href }));
+                  modified = true;
+              }
+          });
+      });
+      
+      if (modified) view.dispatch(tr);
   }
 
   /*
@@ -18760,9 +18881,9 @@ function splitBlockKeepMarks(state, dispatch) {
    */
 
   // Add STRONG and EM (leaving B and I) to support default ProseMirror output   
-  const _formatTags = ['B', 'STRONG', 'I', 'EM', 'U', 'DEL', 'SUB', 'SUP', 'CODE', 'SPAN'];       // All possible (nestable) formats
+  const _formatTags = ['B', 'STRONG', 'I', 'EM', 'U', 'DEL', 'SUB', 'SUP', 'CODE'];       // All possible (nestable) formats
 
-  const _minimalStyleTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE', 'SPAN'];           // Convert to 'P' for pasteText
+  const _minimalStyleTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE'];           // Convert to 'P' for pasteText
 
   const _voidTags = ['BR', 'IMG', 'AREA', 'COL', 'EMBED', 'HR', 'INPUT', 'LINK', 'META', 'PARAM']; // Tags that are self-closing
 
@@ -19112,6 +19233,12 @@ function splitBlockKeepMarks(state, dispatch) {
       _callback('ready');
   });
 
+  window.addEventListener("blur", () => {
+    if (window.view) {
+      applyAutoLink(window.view);
+    }
+  });
+
   /**
    * Capture all unexpected runtime errors in this script, report to the Swift side for debugging.
    *
@@ -19308,7 +19435,7 @@ function splitBlockKeepMarks(state, dispatch) {
       let text;
       if (cleanHTML) {
           _cleanUpDivsWithin(editor);
-        //   _cleanUpSpansWithin(editor);
+          _cleanUpSpansWithin(editor);
       }	if (prettyHTML) {
           text = _allPrettyHTML(editor);
       } else {
@@ -19756,7 +19883,7 @@ function splitBlockKeepMarks(state, dispatch) {
   /**
    * Toggle the selection to/from strikethrough (<S>)
    */
-  function rike() {
+  function toggleStrike() {
       _toggleFormat('DEL');
   }
   /**
@@ -19777,95 +19904,151 @@ function splitBlockKeepMarks(state, dispatch) {
   function toggleSuperscript() {
       _toggleFormat('SUP');
   }
-
-    function setColor(color, backgroundColor) {
-        const markType = view.state.schema.marks.span;
-
-        let styleParts = [];
-        if (color) styleParts.push(`color: ${color}`);
-        if (backgroundColor) styleParts.push(`background-color: ${backgroundColor}`);
-        const style = styleParts.join('; ');
-        const attrs = { style };
-
-        const { selection } = view.state;
-        const { $cursor, ranges } = selection;
-
-        if ($cursor) {
-            view.dispatch(view.state.tr.removeStoredMark(markType));
-            if (style) {
-                view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
-            }
-        } else {
-            const tr = view.state.tr;
-            for (let i = 0; i < ranges.length; i++) {
-                let { $from, $to } = ranges[i];
-                let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
-                let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
-                let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
-                if (from + spaceStart < to) {
-                    from += spaceStart;
-                    to -= spaceEnd;
-                }
-                tr.removeMark(from, to, markType);
-                if (style) {
-                    tr.addMark(from, to, markType.create(attrs));
-                }
-            }
-            view.dispatch(tr.scrollIntoView());
-        }
-    }
-    
-    // Apply text alignment (left, center, right, justify) using a span mark
-    function setTextAlignment(alignment) {
-      const validAlignments = ["left", "center", "right", "justify"];
-      if (!validAlignments.includes(alignment)) return;
-
+  function setColor(color, backgroundColor) {
       const markType = view.state.schema.marks.span;
-      const { state, dispatch } = view;
-      const { selection, tr } = state;
-      const { ranges } = selection;
 
-      // Apply only when text is selected
-      for (let i = 0; i < ranges.length; i++) {
-        const { $from, $to } = ranges[i];
+      let styleParts = [];
+      if (color) styleParts.push(`color: ${color}`);
+      if (backgroundColor) styleParts.push(`background-color: ${backgroundColor}`);
+      const style = styleParts.join('; ');
+      const attrs = { style };
 
-        state.doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
-          if (!node.isText) return;
+      const { selection } = view.state;
+      const { $cursor, ranges } = selection;
 
-          // Extract existing styles except text-align
-          const baseStyles = {};
-          node.marks.forEach(mark => {
-            if (mark.type === markType && mark.attrs?.style) {
-              mark.attrs.style.split(";").forEach(pair => {
-                const [k, v] = pair.split(":").map(s => s.trim());
-                if (k && v && k !== "text-align") baseStyles[k] = v;
-              });
-            }
-          });
-
-          // Merge with new alignment
-          baseStyles["text-align"] = alignment;
-          const finalStyle = Object.entries(baseStyles).map(([k, v]) => `${k}: ${v}`).join("; ");
-
-          // Remove only the previous span marks that have text-align (not others like strong/em)
-          node.marks.forEach(mark => {
-            if (
-              mark.type === markType &&
-              mark.attrs?.style?.includes("text-align")
-            ) {
-              tr.removeMark(pos, pos + node.nodeSize, markType);
-            }
-          });
-
-          // Reapply the span mark with the merged styles
-          if (finalStyle.trim()) {
-            tr.addMark(pos, pos + node.nodeSize, markType.create({ style: finalStyle }));
+      if ($cursor) {
+          view.dispatch(view.state.tr.removeStoredMark(markType));
+          if (style) {
+              view.dispatch(view.state.tr.addStoredMark(markType.create(attrs)));
           }
-        });
+      } else {
+          const tr = view.state.tr;
+          for (let i = 0; i < ranges.length; i++) {
+              let { $from, $to } = ranges[i];
+              let from = $from.pos, to = $to.pos, start = $from.nodeAfter, end = $to.nodeBefore;
+              let spaceStart = start && start.isText ? /^\s*/.exec(start.text)[0].length : 0;
+              let spaceEnd = end && end.isText ? /\s*$/.exec(end.text)[0].length : 0;
+              if (from + spaceStart < to) {
+                  from += spaceStart;
+                  to -= spaceEnd;
+              }
+              tr.removeMark(from, to, markType);
+              if (style) {
+                  tr.addMark(from, to, markType.create(attrs));
+              }
+          }
+          view.dispatch(tr.scrollIntoView());
       }
-      dispatch(tr.scrollIntoView());
+
+      stateChanged();
+  }
+
+  function setTextAlignment(align, state = view.state, dispatch = view.dispatch) {
+      const { from, to } = state.selection;
+      let tr = state.tr;
+      let modified = false;
+
+      const ALIGNABLE_TYPES = ["paragraph", "heading", "list_item"];
+
+      state.doc.nodesBetween(from, to, (node, pos) => {
+          const name = node.type.name;
+
+          if (pos === 0) return;
+
+          const $pos = state.doc.resolve(pos);
+
+          // Search for list_item <li>
+          let hasAlignedParent = false;
+          for (let d = $pos.depth; d >= 1; d--) {
+              const parentNode = $pos.node(d);
+              const parentPos = $pos.before(d);
+
+              if (parentNode.type.name === "list_item") {
+                  const currentAlign = parentNode.attrs.align || "left";
+                  if (currentAlign !== align) {
+                      tr = tr.setNodeMarkup(parentPos, undefined, {
+                          ...parentNode.attrs,
+                          align: align
+                      });
+                      modified = true;
+                  }
+                  hasAlignedParent = true;
+                  break;
+              }
+          }
+
+          // Don't align if it was done previously on a parent <li>
+          if (!hasAlignedParent && ALIGNABLE_TYPES.includes(name)) {
+              const currentAlign = node.attrs.align || "left";
+              if (currentAlign !== align) {
+                  tr = tr.setNodeMarkup(pos, undefined, {
+                      ...node.attrs,
+                      align: align
+                  });
+                  modified = true;
+              }
+          }
+      });
+
+      if (modified && dispatch) {
+          dispatch(tr.scrollIntoView());
+          stateChanged();
+      }
+  }
+
+  function toggleSelectionToLink(url) {
+    const { state, dispatch } = view;
+    const { selection, schema, tr, doc } = state;
+    const linkMarkType = schema.marks.link;
+
+    const cleanedUrl = typeof url === 'string' ? url.trim() : null;
+
+    if (selection.empty) {
+      if (!cleanedUrl) return;
+      const linkMark = linkMarkType.create({ href: cleanedUrl });
+      const textNode = schema.text(cleanedUrl, [linkMark]);
+      const transaction = tr.replaceSelectionWith(textNode, false);
+      const linkSelection = TextSelection.create(
+        transaction.doc,
+        selection.from,
+        selection.from + textNode.nodeSize
+      );
+      transaction.setSelection(linkSelection);
+      dispatch(transaction);
+    } else {
+      const selectedText = doc.textBetween(selection.from, selection.to, ' ', ' ').trim();
+      const hasLink = doc.rangeHasMark(selection.from, selection.to, linkMarkType);
+
+      if (hasLink || (!cleanedUrl && !selectedText)) {
+        dispatch(tr.removeMark(selection.from, selection.to, linkMarkType));
+      } else {
+        const finalUrl = cleanedUrl || selectedText;
+        const linkMark = linkMarkType.create({ href: finalUrl });
+        dispatch(tr.addMark(selection.from, selection.to, linkMark));
+      }
     }
 
+    stateChanged();
+  }
+
+  function getTextAlignment(state = view.state) {
+      const { from, to } = state.selection;
+      let foundAlign = null;
+
+      state.doc.nodesBetween(from, to, (node) => {
+          if (ALIGNABLE_TYPES.includes(node.type.name)) {
+              const align = node.attrs.align || "left";
+              if (foundAlign === null) {
+                  foundAlign = align;
+              } else if (foundAlign !== align) {
+                  foundAlign = null;
+                  return false;
+              }
+          }
+      });
+
+      return foundAlign;
+  }
 
   /**
    * Turn the format tag off and on for selection.
@@ -19875,41 +20058,85 @@ function splitBlockKeepMarks(state, dispatch) {
    *
    * @param {string} type     The *uppercase* type to be toggled at the selection.
    */
-  function _toggleFormat(type, attrs) {
+  function _toggleFormat(type) {
       const state = view.state;
       let toggle;
       switch (type) {
           case 'B':
-              toggle = toggleMark(state.schema.marks.strong);
+              toggle = smartToggleMark(state.schema.marks.strong);
               break;
           case 'I':
-              toggle = toggleMark(state.schema.marks.em);
+              toggle = smartToggleMark(state.schema.marks.em);
               break;
           case 'U':
-              toggle = toggleMark(state.schema.marks.u);
+              toggle = smartToggleMark(state.schema.marks.underline);
+  //            toggle = smartToggleMark(state.schema.marks.u);
               break;
           case 'CODE':
-              toggle = toggleMark(state.schema.marks.code);
+              toggle = smartToggleMark(state.schema.marks.code);
               break;
           case 'DEL':
-              toggle = toggleMark(state.schema.marks.s);
+              toggle = smartToggleMark(state.schema.marks.s);
               break;
           case 'SUB':
-              toggle = toggleMark(state.schema.marks.sub);
+              toggle = smartToggleMark(state.schema.marks.sub);
               break;
           case 'SUP':
-              toggle = toggleMark(state.schema.marks.sup);
+              toggle = smartToggleMark(state.schema.marks.sup);
               break;
-          case 'SPAN':
-              toggle = toggleMark(state.schema.marks.span, attrs);
-              break;
-      }    
-      
-      if (toggle) {
+      }    if (toggle) {
           toggle(state, view.dispatch);
           stateChanged();
+      }}
+  function smartToggleMark(markType, attrs = null) {
+    return function (state, dispatch) {
+      const { empty, $cursor, ranges } = state.selection;
+
+      if ((empty && !$cursor) || !markApplies(state.doc, ranges, markType))
+        return false;
+
+      if (dispatch) {
+        if ($cursor) {
+          const has = markType.isInSet(state.storedMarks || $cursor.marks());
+          dispatch(state.tr[has ? 'removeStoredMark' : 'addStoredMark'](markType.create(attrs)));
+        } else {
+          // Check if all text in range has the mark
+          const allMarked = ranges.every(({ $from, $to }) =>
+            rangeIsFullyMarked(state.doc, $from.pos, $to.pos, markType)
+          );
+
+          let tr = state.tr;
+          for (let { $from, $to } of ranges) {
+            if (allMarked) {
+              tr = tr.removeMark($from.pos, $to.pos, markType);
+            } else {
+              tr = tr.addMark($from.pos, $to.pos, markType.create(attrs));
+            }
+          }
+
+          dispatch(tr.scrollIntoView());
+        }
       }
-   }
+
+      return true;
+    };
+  }
+
+  function rangeIsFullyMarked(doc, from, to, markType) {
+    let fullyMarked = true;
+    doc.nodesBetween(from, to, (node, pos) => {
+      if (!node.isText) return;
+
+      const hasMark = markType.isInSet(node.marks);
+      if (!hasMark) {
+        fullyMarked = false;
+        return false; // Stop early
+      }
+    });
+    return fullyMarked;
+  }
+
+
   /********************************************************************************
    * Styling
    * 1. Styles (P, H1-H6) are applied to blocks
@@ -19918,12 +20145,12 @@ function splitBlockKeepMarks(state, dispatch) {
    */
   //MARK: Styling
 
+
   /**
    * Set the paragraph style at the selection to `style` 
    * @param {String}  style    One of the styles P or H1-H6 to set the selection to.
    */
   function setStyle(style) {
-    
       const node = _nodeFor(style);
       _setParagraphStyle(node);
   }
@@ -20278,57 +20505,100 @@ function splitBlockKeepMarks(state, dispatch) {
    *
    */
   function indent() {
-      const selection = view.state.selection;
-      const nodeTypes = view.state.schema.nodes;
-      let newState;
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isBlock) {   
-              const command = wrapIn(nodeTypes.blockquote);
-              command(view.state, (transaction) => {
-                  newState = view.state.apply(transaction);
-              });
-              return true;
-          }        return false;
-      });
-      if (newState) {
-          view.updateState(newState);
-          stateChanged();
-      }
+      return adjustIndent('in');
   }
+
   /**
-   * Do a context-sensitive outdent.
-   *
-   * If in a list, outdent the item to a less nested level in the list if appropriate.
-   * If in a blockquote, remove a blockquote to outdent further.
-   * Else, do nothing.
-   *
-   */
+  * Do a context-sensitive outdent.
+  *
+  * If in a list, outdent the item to a less nested level in the list if appropriate.
+  * If in a blockquote, remove a blockquote to outdent further.
+  * Else, do nothing.
+  *
+  */
   function outdent() {
-      const selection = view.state.selection;
-      const blockquote = view.state.schema.nodes.blockquote;
-      const ul = view.state.schema.nodes.bullet_list;
-      const ol = view.state.schema.nodes.ordered_list;
-      let newState;
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if ((node.type == blockquote) || (node.type == ul) || (node.type == ol)) {   
-              lift(view.state, (transaction) => {
-                  // Note that some selections will not outdent, even though they
-                  // contain outdentable items. For example, multiple blockquotes 
-                  // within a selection cannot be outdented. However, multiple 
-                  // blocks (e.g., p) can be outdented within a blockquote, because
-                  // the selection is identifying the paragraphs to be outdented.
-                  newState = view.state.apply(transaction);
-              });
-          }        return true;
-      });
-      if (newState) {
-          view.updateState(newState);
-          stateChanged();
-          return true;
-      } else {
-          return false;
-      }
+      return adjustIndent('out');
   }
+
+  /**
+   * Check textAlign, if = "left" then indent / outdent by default
+   * if textAlign = "right" then indent / outdent in reverse
+   */
+  function adjustIndent(type) {
+    const { state, dispatch } = view;
+    const { bullet_list, ordered_list, list_item, blockquote } = state.schema.nodes;
+
+    const inList = isInList(state, bullet_list, ordered_list);
+
+    try {
+      if (type === 'in') {
+        if (inList) {
+          if (sinkListItem(list_item)(state, dispatch)) {
+            safeStateChanged();
+            return true;
+          }
+        } else {
+          if (wrapIn(blockquote)(state, dispatch)) {
+            safeStateChanged();
+            return true;
+          }
+        }
+      }
+
+      if (type === 'out') {
+        if (inList) {
+          if (liftListItem(list_item)(state, dispatch)) {
+            safeStateChanged();
+            return true;
+          }
+        } else {
+          if (lift(state, dispatch)) {
+            safeStateChanged();
+            return true;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Indent/Outdent error:", err);
+    }
+
+    return false;
+  }
+
+  function safeStateChanged() {
+    try {
+      stateChanged();
+    } catch (e) {
+      console.warn("stateChanged() failed:", e);
+    }
+  }
+    
+    function isRightAligned(state) {
+      const { $from } = state.selection;
+      for (let d = $from.depth; d >= 0; d--) {
+        const node = $from.node(d);
+        const align = node.attrs?.align || null;
+        if (align === "right") return true;
+      }
+
+      const mark = state.schema.marks.align;
+      if (mark) {
+        const marks = state.storedMarks || state.selection.$from.marks();
+        return marks.some(m => m.type === mark && m.attrs?.align === "right");
+      }
+
+      return false;
+    }
+
+  function isInList(state, ...listTypes) {
+    const { $from } = state.selection;
+    for (let d = $from.depth; d > 0; d--) {
+      const node = $from.node(d);
+      if (listTypes.includes(node.type)) return true;
+    }
+    return false;
+  }
+
   /********************************************************************************
    * Deal with modal input from the Swift side
    */
@@ -20465,7 +20735,7 @@ function splitBlockKeepMarks(state, dispatch) {
       };
       state['selrect'] = selrectDict;
       // Link
-      const linkAttributes = _getLinkAttributes();
+      const linkAttributes = getLinkAttributes();
       state['href'] = linkAttributes['href'];
       state['link'] = linkAttributes['link'];
       // Image
@@ -20493,21 +20763,21 @@ function splitBlockKeepMarks(state, dispatch) {
       state['li'] = state['list'] !== null;   // We are always in a li by definition for ProseMirror, right?
       state['quote'] = _getIndented();
       // Format
-      const markTypes = _getMarkTypes();
+      const markTypes = getFullyAppliedMarkTypes();
       const schema = view.state.schema;
       state['bold'] = markTypes.has(schema.marks.strong);
       state['italic'] = markTypes.has(schema.marks.em);
-      state['underline'] = markTypes.has(schema.marks.u);
+      state['underline'] = markTypes.has(schema.marks.underline);
       state['strike'] = markTypes.has(schema.marks.s);
       state['sub'] = markTypes.has(schema.marks.sub);
       state['sup'] = markTypes.has(schema.marks.sup);
       state['code'] = markTypes.has(schema.marks.code);
-
-      const {backgroundColor, color} = _getSpanAttributes();
+      
+      const {backgroundColor, color} = getSpanAttributes();
       state['backgroundColor'] = backgroundColor;
       state['color'] = color;
       
-      const textAlign = _getTextAlignment();
+      const textAlign = getTextAlignment();
       state['textAlign'] = textAlign;
       
       return state;
@@ -20569,122 +20839,137 @@ function splitBlockKeepMarks(state, dispatch) {
       const right = Math.max(fromCoords.right, toCoords.right);
       return {top: top, bottom: bottom, left: left, right: right};
   }
-  /**
-   * Return the MarkTypes that exist at the selection.
-   * @returns {Set<MarkType>}   The set of MarkTypes at the selection.
-   */
-  function _getMarkTypes() {
+    function getFullyAppliedMarkTypes() {
       const state = view.state;
-      const {from, $from, to, empty} = state.selection;
-      if (empty) {
-          const marks = state.storedMarks || $from.marks();
-          const markTypes = marks.map(mark => { return mark.type });
-          return new Set(markTypes);
-      } else {
-          const markTypes = new Set();
-          state.doc.nodesBetween(from, to, node => {
-              node.marks.forEach(mark => markTypes.add(mark.type));
-          });
-          return markTypes;
+      const selection = state?.selection;
+      if (!selection) {
+        console.warn("[getFullyAppliedMarkTypes] selection is empty");
+        return new Set();
       }
-  }
+
+      const { from, to, empty } = selection;
+      const $from = selection.$from;
+
+      if (empty) {
+        const marks = state.storedMarks ?? $from?.marks() ?? [];
+        return new Set(marks.map(mark => mark.type));
+      }
+
+      const markCounts = new Map();
+      let textNodeCount = 0;
+
+      state.doc.nodesBetween(from, to, node => {
+        if (!node.isText) return;
+
+        textNodeCount++;
+
+        node.marks.forEach(mark => {
+          const count = markCounts.get(mark.type) || 0;
+          markCounts.set(mark.type, count + 1);
+        });
+      });
+
+      const fullyAppliedMarks = new Set();
+      for (let [markType, count] of markCounts.entries()) {
+        if (count === textNodeCount && textNodeCount > 0) {
+          fullyAppliedMarks.add(markType);
+        }
+      }
+
+      return fullyAppliedMarks;
+    }
+
+
   /**
    * Return the link attributes at the selection.
    * @returns {Object}   An Object whose properties are <a> attributes (like href, link) at the selection.
    */
-  function _getLinkAttributes() {
-      const selection = view.state.selection;
-      const selectedNodes = [];
-      view.state.doc.nodesBetween(selection.from, selection.to, node => {
-          if (node.isText) selectedNodes.push(node);
+  function getLinkAttributes() {
+    const { state } = view;
+    const { selection, schema } = state;
+    const { $from, empty } = selection;
+
+    // Si c’est une sélection vide (curseur), on regarde autour
+    if (empty) {
+      const node = $from.nodeBefore || $from.nodeAfter;
+      if (node && node.isText) {
+        const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+        if (linkMark) {
+          return {
+            href: linkMark.attrs.href,
+            link: node.text
+          };
+        }
+      }
+    } else {
+      // Si du texte est sélectionné, on parcourt la sélection
+      let found = null;
+      state.doc.nodesBetween(selection.from, selection.to, (node) => {
+        if (node.isText) {
+          const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
+          if (linkMark) {
+            found = {
+              href: linkMark.attrs.href,
+              link: node.text
+            };
+            return false; // Stop iteration early
+          }
+        }
       });
-      const selectedNode = (selectedNodes.length === 1) && selectedNodes[0];
-      if (selectedNode) {
-          const linkMarks = selectedNode.marks.filter(mark => mark.type === view.state.schema.marks.link);
-          if (linkMarks.length === 1) {
-              return {href: linkMarks[0].attrs.href, link: selectedNode.text};
-          }    }    return {};
+      if (found) return found;
+    }
+
+    return {};
   }
 
-    function _getSpanAttributes() {
-      const selection = view.state.selection;
-      let colorSet = new Set();
-      let backgroundColorSet = new Set();
+  function getSpanAttributes() {
+    const selection = view.state.selection;
+    let colorSet = new Set();
+    let backgroundColorSet = new Set();
 
-      if (selection.empty && selection.$cursor) {
-        const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
-        marks.forEach(mark => {
-          const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
-            const [key, value] = el.split(':').map(v => v.trim());
-            if (key && value) dict[key] = value;
-            return dict;
-          }, {}) || {};
+    if (selection.empty && selection.$cursor) {
+      const marks = selection.$cursor.marks().filter(mark => mark.type === view.state.schema.marks.span);
+      marks.forEach(mark => {
+        const styles = mark.attrs?.style?.split(';').reduce((dict, el) => {
+          const [key, value] = el.split(':').map(v => v.trim());
+          if (key && value) dict[key] = value;
+          return dict;
+        }, {}) || {};
 
-          if (styles['color']) colorSet.add(styles['color']);
-          if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
-        });
-      } else {
-        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
-          if (node.isText) {
-            node.marks
-              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
-              .forEach(mark => {
-                const styles = mark.attrs.style.split(';').reduce((dict, el) => {
-                  const [key, value] = el.split(':').map(v => v.trim());
-                  if (key && value) dict[key] = value;
-                  return dict;
-                }, {});
+        if (styles['color']) colorSet.add(styles['color']);
+        if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+      });
+    } else {
+      view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
+        if (node.isText) {
+          node.marks
+            .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
+            .forEach(mark => {
+              const styles = mark.attrs.style.split(';').reduce((dict, el) => {
+                const [key, value] = el.split(':').map(v => v.trim());
+                if (key && value) dict[key] = value;
+                return dict;
+              }, {});
 
-                if (styles['color']) colorSet.add(styles['color']);
-                if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
-              });
-          }
-        });
-      }
-
-      const result = {};
-
-      result.color = colorSet.size === 1
-        ? [...colorSet][0]
-        : (colorSet.size > 1 ? null : undefined);
-
-      result.backgroundColor = backgroundColorSet.size === 1
-        ? [...backgroundColorSet][0]
-        : (backgroundColorSet.size > 1 ? null : undefined);
-
-      return result;
-    }
-    
-    // Traverse selected text nodes and collect 'text-align' values from span marks
-    function _getTextAlignment() {
-      const selection = view.state.selection;
-      const alignSet = new Set();
-
-      if (!selection.empty) {
-        view.state.doc.nodesBetween(selection.from, selection.to, (node) => {
-          if (node.isText) {
-            node.marks
-              .filter(mark => mark.type === view.state.schema.marks.span && mark.attrs?.style)
-              .forEach(mark => {
-                const styles = mark.attrs.style.split(";").reduce((dict, el) => {
-                  const [key, value] = el.split(":").map(v => v.trim());
-                  if (key && value) dict[key] = value;
-                  return dict;
-                }, {});
-                if (styles["text-align"]) {
-                  alignSet.add(styles["text-align"]);
-                }
-              });
-          }
-        });
-      }
-
-      if (alignSet.size === 1) {
-        return [...alignSet][0];
-      }
-        return null
+              if (styles['color']) colorSet.add(styles['color']);
+              if (styles['background-color']) backgroundColorSet.add(styles['background-color']);
+            });
+        }
+      });
     }
 
+    const result = {};
+
+    result.color = colorSet.size === 1
+      ? [...colorSet][0]
+      : (colorSet.size > 1 ? null : undefined);
+
+    result.backgroundColor = backgroundColorSet.size === 1
+      ? [...backgroundColorSet][0]
+      : (backgroundColorSet.size > 1 ? null : undefined);
+
+    return result;
+  }
 
   /**
    * Return the image attributes at the selection
@@ -21002,7 +21287,7 @@ function splitBlockKeepMarks(state, dispatch) {
           transaction.setSelection(linkSelection);
           view.dispatch(transaction);
       } else {
-          const toggle = toggleMark(linkMark.type, linkMark.attrs);
+          const toggle = smartToggleMark(linkMark.type, linkMark.attrs);
           if (toggle) toggle(view.state, view.dispatch);
       }    stateChanged();
   }
@@ -21038,7 +21323,7 @@ function splitBlockKeepMarks(state, dispatch) {
       let state = view.state.apply(transaction);
 
       // Then toggle the link off and reset the selection
-      const toggle = toggleMark(linkType);
+      const toggle = smartToggleMark(linkType);
       if (toggle) {
           toggle(state, (tr) => {
               state = state.apply(tr);   // Toggle the link off
@@ -21586,7 +21871,7 @@ function splitBlockKeepMarks(state, dispatch) {
     }
     if (type = schema.marks.code)
       bind("Mod-`", toggleMark(type));
-    if (type = schema.marks.u) {
+    if (type = schema.marks.underline) {
       bind("Alt-Shift-u", toggleMark(type));
       bind("Alt-Shift-U", toggleMark(type));
     }
@@ -21696,6 +21981,53 @@ function splitBlockKeepMarks(state, dispatch) {
     return inputRules({rules})
   }
 
+  //
+  //  underlineColor.js
+  //  MarkupEditor
+  //
+  //  Created by Antoine CHINAULT on 24/06/2025.
+  //
+
+
+  const autoSyncUnderlineColorPlugin = new Plugin({
+    appendTransaction(transactions, oldState, newState) {
+      let tr = newState.tr;
+      let modified = false;
+
+      newState.doc.descendants((node, pos) => {
+        if (!node.isText) return;
+
+        const spanMark = node.marks.find(m => m.type.name === 'span');
+        const underlineMark = node.marks.find(m => m.type.name === 'underline');
+        if (!spanMark || !underlineMark) return;
+
+        const style = spanMark.attrs.style || '';
+        const colorMatch = style.match(/color:\s*([^;]+)/);
+        const spanColor = colorMatch ? colorMatch[1].trim() : null;
+
+        const underlineColor = underlineMark.attrs?.color || null;
+
+        if (spanColor && spanColor !== underlineColor) {
+          const from = pos;
+          const to = pos + node.nodeSize;
+
+          const otherMarks = node.marks.filter(m => m.type.name !== 'underline');
+          const updatedUnderline = underlineMark.type.create({ color: spanColor });
+          const allMarks = [...otherMarks, updatedUnderline];
+
+          tr = tr.removeMark(from, to, underlineMark.type);
+          allMarks.forEach(mark => {
+            tr = tr.addMark(from, to, mark);
+          });
+
+          modified = true;
+        }
+      });
+
+      return modified ? tr : null;
+    }
+  });
+
   // !! This module exports helper functions for deriving a set of basic
   // menu items, input rules, or key bindings from a schema. These
   // values need to know about the schema for two reasons—they need
@@ -21775,7 +22107,11 @@ function splitBlockKeepMarks(state, dispatch) {
    * The Map is keyed by the src for the image. If the src is duplicated in the document, we only 
    * get one 'addedImage' notification.
    */
+  const imageKey = new PluginKey('image');
+
   const imagePlugin = new Plugin({
+    key: imageKey,
+      
     state: {
       init() {
         return new Map()
@@ -21807,7 +22143,11 @@ function splitBlockKeepMarks(state, dispatch) {
    * 
    * @returns {Plugin}
    */
+  const placeHolderKey = new PluginKey('placeHolder');
+
   const placeholderPlugin = new Plugin({
+    key: placeHolderKey,
+      
     props: {
       decorations(state) {
         if (!placeholderText) return;   // No need to mess around if we have no placeholder
@@ -21875,6 +22215,8 @@ function splitBlockKeepMarks(state, dispatch) {
     plugins.push(search());
     plugins.push(searchModePlugin);
 
+    plugins.push(autoSyncUnderlineColorPlugin);
+      
     return plugins;
   }
 
@@ -21914,13 +22256,17 @@ function splitBlockKeepMarks(state, dispatch) {
         schema: muSchema
       })
     }),
+      dispatchTransaction(tr) {
+        const newState = window.view.state.apply(tr);
+        window.view.updateState(newState);
+        stateChanged();
+      },
     nodeViews: {
       image(node, view, getPos) { return new ImageView(node, view, getPos) },
       div(node, view, getPos) { return new DivView(node, view, getPos) },
     },
     // All text input notifies Swift that the document state has changed.
     handleTextInput() {
-      stateChanged();
       return false; // All the default behavior should occur
     },
     // Use createSelectionBetween to handle selection and click both.
@@ -21941,7 +22287,13 @@ function splitBlockKeepMarks(state, dispatch) {
       selectionChanged();
       clicked();
       return null;                        // Default behavior should occur
-    }
+    },
+      handleDOMEvents: {
+        mousedown(view, event) {
+          clicked();
+          return false;
+        }
+      }
   });
 
   exports.addButton = addButton;
@@ -21961,8 +22313,11 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.focusOn = focusOn;
   exports.getHTML = getHTML;
   exports.getHeight = getHeight;
+  exports.getLinkAttributes = getLinkAttributes;
   exports.getSelectionState = getSelectionState;
+  exports.getSpanAttributes = getSpanAttributes;
   exports.getTestHTML = getTestHTML;
+  exports.getTextAlignment = getTextAlignment;
   exports.indent = indent;
   exports.insertImage = insertImage;
   exports.insertLink = insertLink;
@@ -21978,14 +22333,15 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.removeButton = removeButton;
   exports.removeDiv = removeDiv;
   exports.replaceStyle = replaceStyle;
-  
   exports.resetSelection = resetSelection;
   exports.searchFor = searchFor;
+  exports.setColor = setColor;
   exports.setHTML = setHTML;
   exports.setMessageHandler = setMessageHandler;
   exports.setPlaceholder = setPlaceholder;
   exports.setStyle = setStyle;
   exports.setTestHTML = setTestHTML;
+  exports.setTextAlignment = setTextAlignment;
   exports.setTopLevelAttributes = setTopLevelAttributes;
   exports.startModalInput = startModalInput;
   exports.testBlockquoteEnter = testBlockquoteEnter;
@@ -21997,9 +22353,8 @@ function splitBlockKeepMarks(state, dispatch) {
   exports.toggleCode = toggleCode;
   exports.toggleItalic = toggleItalic;
   exports.toggleListItem = toggleListItem;
-  exports.setColor = setColor;
-  exports.setTextAlignment = setTextAlignment;
-  exports.rike = rike;
+  exports.toggleSelectionToLink = toggleSelectionToLink;
+  exports.toggleStrike = toggleStrike;
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;
   exports.toggleUnderline = toggleUnderline;

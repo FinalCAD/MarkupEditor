@@ -1,7 +1,7 @@
 import {keymap} from "prosemirror-keymap"
 import {history} from "prosemirror-history"
 import {baseKeymap} from "prosemirror-commands"
-import {AllSelection, NodeSelection, Plugin} from "prosemirror-state"
+import {AllSelection, NodeSelection, Plugin, PluginKey} from "prosemirror-state"
 import {dropCursor} from "prosemirror-dropcursor"
 import {gapCursor} from "prosemirror-gapcursor"
 import {Decoration, DecorationSet} from "prosemirror-view"
@@ -11,6 +11,7 @@ import {menuBar} from "../menu/menubar"
 import {buildMenuItems} from "./menu"
 import {buildKeymap} from "./keymap"
 import {buildInputRules} from "./inputrules"
+import {autoSyncUnderlineColorPlugin} from "../plugins/underlineColor"
 
 import {placeholderText, postMessage, selectedID, resetSelectedID, stateChanged, searchIsActive} from "../markup"
 
@@ -95,7 +96,11 @@ const searchModePlugin  = new Plugin({
  * The Map is keyed by the src for the image. If the src is duplicated in the document, we only 
  * get one 'addedImage' notification.
  */
+const imageKey = new PluginKey('image');
+
 const imagePlugin = new Plugin({
+  key: imageKey,
+    
   state: {
     init() {
       return new Map()
@@ -127,7 +132,11 @@ const imagePlugin = new Plugin({
  * 
  * @returns {Plugin}
  */
+const placeHolderKey = new PluginKey('placeHolder');
+
 const placeholderPlugin = new Plugin({
+  key: placeHolderKey,
+    
   props: {
     decorations(state) {
       if (!placeholderText) return;   // No need to mess around if we have no placeholder
@@ -195,5 +204,7 @@ export function markupSetup(options) {
   plugins.push(search())
   plugins.push(searchModePlugin)
 
+  plugins.push(autoSyncUnderlineColorPlugin)
+    
   return plugins;
 }

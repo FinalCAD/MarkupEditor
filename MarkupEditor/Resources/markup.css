@@ -278,3 +278,15 @@ img {
     position: absolute;
     color: #ccc;
 }
+
+ul[style*="text-align"] li,
+ol[style*="text-align"] li,
+li[style*="text-align"] {
+  list-style-position: inside;
+  text-align: inherit;
+}
+
+.inline-code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
