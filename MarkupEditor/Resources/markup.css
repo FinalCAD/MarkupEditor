@@ -163,7 +163,7 @@ blockquote {
 code {
     overflow-x: scroll;
     display: block;
-    background-color: #F8F8F8;
+    background-color: #CED2D8;
     border-radius: 3px;
     font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
     white-space: pre;
