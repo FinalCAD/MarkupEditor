@@ -206,12 +206,12 @@ window.view = new EditorView(document.querySelector("#editor"), {
     const fromDiv = outermostOfTypeAt(divType, range.$from);
     const toDiv = outermostOfTypeAt(divType, range.$to);
     // If selection is all within one div, then default occurs; else return existing selection
-    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
-      if (fromDiv != toDiv) {
-          return null;
-//        return view.state.selection;    // Return the existing selection
-      }
-    };
+//    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
+//      if (fromDiv != toDiv) {
+//          return null;
+////        return view.state.selection;    // Return the existing selection
+//      }
+//    };
     resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null)  // Set the selectedID to the div's id or null.
     selectionChanged();
     clicked();
