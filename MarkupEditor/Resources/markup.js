@@ -22301,12 +22301,17 @@
       clicked();
       return null;                        // Default behavior should occur
     },
-      handleDOMEvents: {
-        mousedown(view, event) {
-          clicked();
-          return false;
-        }
-      }
+          handleDOMEvents: {
+              mousedown(view, event) {
+                const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
+                if (pos) {
+                  const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
+                  view.dispatch(tr);
+                }
+                clicked()
+                return false;
+              }
+          }
   });
 
   exports.addButton = addButton;

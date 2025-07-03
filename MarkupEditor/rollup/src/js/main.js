@@ -208,8 +208,7 @@ window.view = new EditorView(document.querySelector("#editor"), {
     // If selection is all within one div, then default occurs; else return existing selection
 //    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
 //      if (fromDiv != toDiv) {
-//          return null;
-////        return view.state.selection;    // Return the existing selection
+//        return view.state.selection;    // Return the existing selection
 //      }
 //    };
     resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null)  // Set the selectedID to the div's id or null.
@@ -218,9 +217,14 @@ window.view = new EditorView(document.querySelector("#editor"), {
     return null;                        // Default behavior should occur
   },
     handleDOMEvents: {
-      mousedown(view, event) {
-        clicked();
-        return false;
-      }
+        mousedown(view, event) {
+          const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
+          if (pos) {
+            const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
+            view.dispatch(tr);
+          }
+          clicked()
+          return false;
+        }
     }
 })
