@@ -19237,6 +19237,9 @@
     if (window.view) {
       applyAutoLink(window.view);
     }
+      const { state } = view;
+      const tr = state.tr.setSelection(TextSelection.create(state.doc, 0));
+      view.dispatch(tr);
   });
 
   /**
@@ -20823,14 +20826,6 @@
       });
       return (text.length === 0) ? null : text;
   }
-  function forceCursorAtPos(view, event) {
-    const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
-    if (pos) {
-      const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
-      view.dispatch(tr);
-    }
-  }
-
   /**
    * Return the rectangle that encloses the selection.
    * @returns {Object} The selection rectangle's top, bottom, left, right.
@@ -22299,30 +22294,20 @@
       const fromDiv = outermostOfTypeAt(divType, range.$from);
       const toDiv = outermostOfTypeAt(divType, range.$to);
       // If selection is all within one div, then default occurs; else return existing selection
-  //    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
-  //      if (fromDiv != toDiv) {
-  //        return view.state.selection;    // Return the existing selection
-  //      }
-  //    };
-      resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null);  // Set the selectedID to the div's id or null.
+      if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
+        if (fromDiv != toDiv) {
+          return view.state.selection;    // Return the existing selection
+        }
+      }    resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null);  // Set the selectedID to the div's id or null.
       selectionChanged();
       clicked();
       return null;                        // Default behavior should occur
     },
       handleDOMEvents: {
         mousedown(view, event) {
-          forceCursorAtPos(view, event);
           clicked();
           return false;
         },
-        mouseup(view, event) {
-          forceCursorAtPos(view, event);
-          return false;
-        },
-        click(view, event) {
-          forceCursorAtPos(view, event);
-          return false;
-        }
       }
   });
 
@@ -22341,7 +22326,6 @@
   exports.endModalInput = endModalInput;
   exports.focus = focus;
   exports.focusOn = focusOn;
-  exports.forceCursorAtPos = forceCursorAtPos;
   exports.getHTML = getHTML;
   exports.getHeight = getHeight;
   exports.getLinkAttributes = getLinkAttributes;

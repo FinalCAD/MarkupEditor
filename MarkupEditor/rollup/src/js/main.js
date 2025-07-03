@@ -75,7 +75,6 @@ import {
   addHeader,
   deleteTableArea,
   borderTable,
-  forceCursorAtPos,
 } from "./markup.js"
 
 /**
@@ -145,7 +144,6 @@ export {
   addHeader,
   deleteTableArea,
   borderTable,
-  forceCursorAtPos,
 }
 
 const muSchema = new Schema({
@@ -208,11 +206,11 @@ window.view = new EditorView(document.querySelector("#editor"), {
     const fromDiv = outermostOfTypeAt(divType, range.$from);
     const toDiv = outermostOfTypeAt(divType, range.$to);
     // If selection is all within one div, then default occurs; else return existing selection
-//    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
-//      if (fromDiv != toDiv) {
-//        return view.state.selection;    // Return the existing selection
-//      }
-//    };
+    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
+      if (fromDiv != toDiv) {
+        return view.state.selection;    // Return the existing selection
+      }
+    };
     resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null)  // Set the selectedID to the div's id or null.
     selectionChanged();
     clicked();
@@ -220,17 +218,8 @@ window.view = new EditorView(document.querySelector("#editor"), {
   },
     handleDOMEvents: {
       mousedown(view, event) {
-        forceCursorAtPos(view, event);
         clicked()
         return false;
       },
-      mouseup(view, event) {
-        forceCursorAtPos(view, event);
-        return false;
-      },
-      click(view, event) {
-        forceCursorAtPos(view, event);
-        return false;
-      }
     }
 })
