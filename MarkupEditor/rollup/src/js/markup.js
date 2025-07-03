@@ -2729,43 +2729,55 @@ function getFullyAppliedMarkTypes() {
  * Return the link attributes at the selection.
  * @returns {Object}   An Object whose properties are <a> attributes (like href, link) at the selection.
  */
-export function getLinkAttributes() {
-  const { state } = view;
-  const { selection, schema } = state;
-  const { $from, empty } = selection;
+  export function getLinkAttributes() {
+    const { state } = view;
+    const { selection, schema } = state;
+    const { $from, empty } = selection;
 
-  // Si c’est une sélection vide (curseur), on regarde autour
-  if (empty) {
-    const node = $from.nodeBefore || $from.nodeAfter;
-    if (node && node.isText) {
-      const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
-      if (linkMark) {
-        return {
-          href: linkMark.attrs.href,
-          link: node.text
-        };
-      }
-    }
-  } else {
-    // Si du texte est sélectionné, on parcourt la sélection
-    let found = null;
-    state.doc.nodesBetween(selection.from, selection.to, (node) => {
-      if (node.isText) {
-        const linkMark = node.marks.find(mark => mark.type === schema.marks.link);
-        if (linkMark) {
-          found = {
-            href: linkMark.attrs.href,
-            link: node.text
-          };
-          return false; // Stop iteration early
+    const linkMarkType = schema.marks.link;
+
+    if (!empty) {
+      let found = null;
+      state.doc.nodesBetween(selection.from, selection.to, (node) => {
+        if (node.isText) {
+          const linkMark = node.marks.find(mark => mark.type === linkMarkType);
+          if (linkMark) {
+            found = {
+              href: linkMark.attrs.href,
+              link: node.text
+            };
+            return false;
+          }
         }
-      }
-    });
-    if (found) return found;
-  }
+      });
+      if (found) return found;
+    } else {
+      const pos = $from.pos;
+      let found = null;
 
-  return {};
-}
+      state.doc.nodesBetween(pos - 1, pos + 1, (node, nodePos) => {
+        if (node.isText) {
+          const linkMark = node.marks.find(mark => mark.type === linkMarkType);
+          if (linkMark) {
+            const start = nodePos;
+            const end = nodePos + node.nodeSize;
+
+            if (pos > start && pos < end) {
+              found = {
+                href: linkMark.attrs.href,
+                link: node.text
+              };
+              return false;
+            }
+          }
+        }
+      });
+
+      if (found) return found;
+    }
+
+    return {};
+  }
 
 export function getSpanAttributes() {
   const selection = view.state.selection;

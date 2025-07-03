@@ -22293,7 +22293,8 @@
       // If selection is all within one div, then default occurs; else return existing selection
       if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
         if (fromDiv != toDiv) {
-          return view.state.selection;    // Return the existing selection
+            return null;
+  //        return view.state.selection;    // Return the existing selection
         }
       }    resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null);  // Set the selectedID to the div's id or null.
       selectionChanged();
