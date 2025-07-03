@@ -39,6 +39,11 @@ body {
     /* MU.padBottom() sets this value in px based on fullHeight */
     --padBottom: 0;
     padding-block: 0 var(--padBottom);
+    
+    /* See https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariCSSRef/ */
+    -webkit-user-select: text; /* Allows text cursor and manual selection */
+    -webkit-touch-callout: none; /* Disables the iOS long-press context menu */
+    -webkit-tap-highlight-color: transparent; /* Removes the gray tap flash on iOS */
 }
 
 #editor:focus {
