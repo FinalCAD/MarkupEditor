@@ -1351,7 +1351,7 @@ export function getHeight() {
    editor.style['padding-block-start'] = '0px';
    editor.style['padding-block-end'] = '0px';
    const style = window.getComputedStyle(editor, null);
-   const height = parseInt(style.getPropertyValue('height'));
+   const height = parseFloat(style.getPropertyValue('height'));
    editor.style['padding-block-start'] = paddingBlockStart;
    editor.style['padding-block-end'] = paddingBlockEnd;
    return height;
