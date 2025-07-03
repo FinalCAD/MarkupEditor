@@ -10526,19 +10526,25 @@
       view.focus();
       view.dispatch(tr.setMeta("uiEvent", "drop"));
   };
-  handlers.focus = view => {
+    handlers.focus = view => {
       view.input.lastFocus = Date.now();
       if (!view.focused) {
-          view.domObserver.stop();
-          view.dom.classList.add("ProseMirror-focused");
-          view.domObserver.start();
-          view.focused = true;
-          setTimeout(() => {
-              if (view.docView && view.hasFocus() && !view.domObserver.currentSelection.eq(view.domSelectionRange()))
-                  selectionToDOM(view);
-          }, 20);
+        view.domObserver.stop();
+        view.dom.classList.add("ProseMirror-focused");
+        view.domObserver.start();
+        view.focused = true;
+
+        setTimeout(() => {
+          if (view.docView && view.hasFocus() && !view.domObserver.currentSelection.eq(view.domSelectionRange()))
+            selectionToDOM(view);
+
+          // Make keyboard appear
+          if (typeof view.dom.focus === 'function') {
+            view.dom.focus();
+          }
+        }, 20);
       }
-  };
+    };
   handlers.blur = (view, _event) => {
       let event = _event;
       if (view.focused) {
@@ -19239,13 +19245,10 @@
     }
   });
 
-  window.addEventListener("focus", () => {
-  });
-
-  document.addEventListener('touchend', function () {
-    const editor = document.querySelector('[contenteditable]');
+  document.addEventListener('touchend', () => {
+    const editor = document.querySelector('.ProseMirror');
     if (editor && document.activeElement !== editor) {
-      editor.focus();
+      setTimeout(() => editor.focus(), 50);
     }
   });
 

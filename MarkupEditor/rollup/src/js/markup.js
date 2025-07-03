@@ -978,20 +978,10 @@ window.addEventListener("blur", () => {
   }
 });
 
-window.addEventListener("focus", () => {
-  if (window.view) {
-//    const { state } = window.view;
-//    const pos = state.selection.to;
-//    const newSelection = TextSelection.create(state.doc, pos);
-//    const tr = state.tr.setSelection(newSelection);
-//    window.view.dispatch(tr);
-  }
-});
-
-document.addEventListener('touchend', function () {
-  const editor = document.querySelector('[contenteditable]');
+document.addEventListener('touchend', () => {
+  const editor = document.querySelector('.ProseMirror');
   if (editor && document.activeElement !== editor) {
-    editor.focus();
+    setTimeout(() => editor.focus(), 50);
   }
 });
 
