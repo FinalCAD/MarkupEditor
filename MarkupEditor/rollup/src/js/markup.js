@@ -976,9 +976,16 @@ window.addEventListener("blur", () => {
   if (window.view) {
     applyAutoLink(window.view);
   }
-    const { state } = view;
-    const tr = state.tr.setSelection(TextSelection.create(state.doc, 0));
-    view.dispatch(tr);
+});
+
+window.addEventListener("focus", () => {
+  if (window.view) {
+    const { state } = window.view;
+    const pos = state.selection.to;
+    const newSelection = TextSelection.create(state.doc, pos);
+    const tr = state.tr.setSelection(newSelection);
+    window.view.dispatch(tr);
+  }
 });
 
 /**
