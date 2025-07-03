@@ -75,6 +75,7 @@ import {
   addHeader,
   deleteTableArea,
   borderTable,
+  forceCursorAtPos,
 } from "./markup.js"
 
 /**
@@ -144,6 +145,7 @@ export {
   addHeader,
   deleteTableArea,
   borderTable,
+  forceCursorAtPos,
 }
 
 const muSchema = new Schema({
@@ -217,14 +219,18 @@ window.view = new EditorView(document.querySelector("#editor"), {
     return null;                        // Default behavior should occur
   },
     handleDOMEvents: {
-        mousedown(view, event) {
-          const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
-          if (pos) {
-            const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
-            view.dispatch(tr);
-          }
-          clicked()
-          return false;
-        }
+      mousedown(view, event) {
+        forceCursorAtPos(view, event);
+        clicked()
+        return false;
+      },
+      mouseup(view, event) {
+        forceCursorAtPos(view, event);
+        return false;
+      },
+      click(view, event) {
+        forceCursorAtPos(view, event);
+        return false;
+      }
     }
 })

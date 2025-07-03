@@ -2647,6 +2647,14 @@ function _getSelectionText() {
     return (text.length === 0) ? null : text;
 };
 
+export function forceCursorAtPos(view, event) {
+  const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
+  if (pos) {
+    const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
+    view.dispatch(tr);
+  }
+}
+
 /**
  * Return the rectangle that encloses the selection.
  * @returns {Object} The selection rectangle's top, bottom, left, right.

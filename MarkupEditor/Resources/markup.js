@@ -20823,6 +20823,14 @@
       });
       return (text.length === 0) ? null : text;
   }
+  function forceCursorAtPos(view, event) {
+    const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
+    if (pos) {
+      const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
+      view.dispatch(tr);
+    }
+  }
+
   /**
    * Return the rectangle that encloses the selection.
    * @returns {Object} The selection rectangle's top, bottom, left, right.
@@ -20839,45 +20847,45 @@
       const right = Math.max(fromCoords.right, toCoords.right);
       return {top: top, bottom: bottom, left: left, right: right};
   }
-    function getFullyAppliedMarkTypes() {
-      const state = view.state;
-      const selection = state?.selection;
-      if (!selection) {
-        console.warn("[getFullyAppliedMarkTypes] selection is empty");
-        return new Set();
-      }
-
-      const { from, to, empty } = selection;
-      const $from = selection.$from;
-
-      if (empty) {
-        const marks = state.storedMarks ?? $from?.marks() ?? [];
-        return new Set(marks.map(mark => mark.type));
-      }
-
-      const markCounts = new Map();
-      let textNodeCount = 0;
-
-      state.doc.nodesBetween(from, to, node => {
-        if (!node.isText) return;
-
-        textNodeCount++;
-
-        node.marks.forEach(mark => {
-          const count = markCounts.get(mark.type) || 0;
-          markCounts.set(mark.type, count + 1);
-        });
-      });
-
-      const fullyAppliedMarks = new Set();
-      for (let [markType, count] of markCounts.entries()) {
-        if (count === textNodeCount && textNodeCount > 0) {
-          fullyAppliedMarks.add(markType);
-        }
-      }
-
-      return fullyAppliedMarks;
+  function getFullyAppliedMarkTypes() {
+    const state = view.state;
+    const selection = state?.selection;
+    if (!selection) {
+      console.warn("[getFullyAppliedMarkTypes] selection is empty");
+      return new Set();
     }
+
+    const { from, to, empty } = selection;
+    const $from = selection.$from;
+
+    if (empty) {
+      const marks = state.storedMarks ?? $from?.marks() ?? [];
+      return new Set(marks.map(mark => mark.type));
+    }
+
+    const markCounts = new Map();
+    let textNodeCount = 0;
+
+    state.doc.nodesBetween(from, to, node => {
+      if (!node.isText) return;
+
+      textNodeCount++;
+
+      node.marks.forEach(mark => {
+        const count = markCounts.get(mark.type) || 0;
+        markCounts.set(mark.type, count + 1);
+      });
+    });
+
+    const fullyAppliedMarks = new Set();
+    for (let [markType, count] of markCounts.entries()) {
+      if (count === textNodeCount && textNodeCount > 0) {
+        fullyAppliedMarks.add(markType);
+      }
+    }
+
+    return fullyAppliedMarks;
+  }
 
 
   /**
@@ -22291,27 +22299,31 @@
       const fromDiv = outermostOfTypeAt(divType, range.$from);
       const toDiv = outermostOfTypeAt(divType, range.$to);
       // If selection is all within one div, then default occurs; else return existing selection
-      if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
-        if (fromDiv != toDiv) {
-//            return null;
+  //    if ((fromDiv || toDiv) && !$anchor.sameParent($head)) {
+  //      if (fromDiv != toDiv) {
   //        return view.state.selection;    // Return the existing selection
-        }
-      }    resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null);  // Set the selectedID to the div's id or null.
+  //      }
+  //    };
+      resetSelectedID(fromDiv?.attrs.id ?? toDiv?.attrs.id ?? null);  // Set the selectedID to the div's id or null.
       selectionChanged();
       clicked();
       return null;                        // Default behavior should occur
     },
-          handleDOMEvents: {
-              mousedown(view, event) {
-                const pos = view.posAtCoords({left: event.clientX, top: event.clientY});
-                if (pos) {
-                  const tr = view.state.tr.setSelection(TextSelection.create(view.state.doc, pos.pos));
-                  view.dispatch(tr);
-                }
-                clicked()
-                return false;
-              }
-          }
+      handleDOMEvents: {
+        mousedown(view, event) {
+          forceCursorAtPos(view, event);
+          clicked();
+          return false;
+        },
+        mouseup(view, event) {
+          forceCursorAtPos(view, event);
+          return false;
+        },
+        click(view, event) {
+          forceCursorAtPos(view, event);
+          return false;
+        }
+      }
   });
 
   exports.addButton = addButton;
@@ -22329,6 +22341,7 @@
   exports.endModalInput = endModalInput;
   exports.focus = focus;
   exports.focusOn = focusOn;
+  exports.forceCursorAtPos = forceCursorAtPos;
   exports.getHTML = getHTML;
   exports.getHeight = getHeight;
   exports.getLinkAttributes = getLinkAttributes;
