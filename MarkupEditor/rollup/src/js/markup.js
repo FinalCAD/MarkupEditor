@@ -980,13 +980,21 @@ window.addEventListener("blur", () => {
 
 window.addEventListener("focus", () => {
   if (window.view) {
-    const { state } = window.view;
-    const pos = state.selection.to;
-    const newSelection = TextSelection.create(state.doc, pos);
-    const tr = state.tr.setSelection(newSelection);
-    window.view.dispatch(tr);
+//    const { state } = window.view;
+//    const pos = state.selection.to;
+//    const newSelection = TextSelection.create(state.doc, pos);
+//    const tr = state.tr.setSelection(newSelection);
+//    window.view.dispatch(tr);
   }
 });
+
+document.addEventListener('touchend', function () {
+  const editor = document.querySelector('[contenteditable]');
+  if (editor && document.activeElement !== editor) {
+    editor.focus();
+  }
+});
+
 
 /**
  * Capture all unexpected runtime errors in this script, report to the Swift side for debugging.
