@@ -14,9 +14,15 @@
   }
 }
 
+@font-face {
+    font-family: 'EffraRegular';
+    src: url('EffraRegular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
-    font-family: -apple-system;
-    font: -apple-system-body;
+    font-family: "EffraRegular", -apple-system;
     caret-color: red;   /* Helps with debugging since should not appear */
     color: #848F9D;
     background-color: #F4F6F8;

@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		4766AFAD2B3E42CA00D9E1E5 /* demoDivs.css in Resources */ = {isa = PBXBuildFile; fileRef = AA4EBE8E2B34C9DA006C614B /* demoDivs.css */; };
+		71EC21B32E17FBE800986DFE /* EffraMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B12E17FBE800986DFE /* EffraMedium.ttf */; };
+		71EC21B42E17FBE800986DFE /* EffraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B02E17FBE800986DFE /* EffraBold.ttf */; };
+		71EC21B52E17FBE800986DFE /* EffraRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B22E17FBE800986DFE /* EffraRegular.ttf */; };
 		AA0DDC5928A1810D0081B869 /* MarkupEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */; };
 		AA0DDC5B28A1C3620081B869 /* ToolbarStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */; };
 		AA0DDC6228AAF4FF0081B869 /* MarkupToolbarUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */; };
@@ -160,6 +163,9 @@
 		4766AFB12B3F523500D9E1E5 /* HtmlButtonGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HtmlButtonGroup.swift; sourceTree = "<group>"; };
 		71AE45542E0A8EFF002C363B /* underlineColor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = underlineColor.js; sourceTree = "<group>"; };
 		71AE45562E0AD199002C363B /* autoLink.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = autoLink.js; sourceTree = "<group>"; };
+		71EC21B02E17FBE800986DFE /* EffraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EffraBold.ttf; sourceTree = "<group>"; };
+		71EC21B12E17FBE800986DFE /* EffraMedium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EffraMedium.ttf; sourceTree = "<group>"; };
+		71EC21B22E17FBE800986DFE /* EffraRegular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EffraRegular.ttf; sourceTree = "<group>"; };
 		AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupEditor.swift; sourceTree = "<group>"; };
 		AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarStyle.swift; sourceTree = "<group>"; };
 		AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupToolbarUIView.swift; sourceTree = "<group>"; };
@@ -844,6 +850,16 @@
 				71AE45542E0A8EFF002C363B /* underlineColor.js */,
 			);
 			path = plugins;
+			sourceTree = "<group>";
+		};
+		71EC21AF2E17FBDC00986DFE /* Font */ = {
+			isa = PBXGroup;
+			children = (
+				71EC21B02E17FBE800986DFE /* EffraBold.ttf */,
+				71EC21B12E17FBE800986DFE /* EffraMedium.ttf */,
+				71EC21B22E17FBE800986DFE /* EffraRegular.ttf */,
+			);
+			path = Font;
 			sourceTree = "<group>";
 		};
 		AA0DDC6928AEA8C70081B869 /* Extensions */ = {
@@ -3011,6 +3027,7 @@
 		AA652A07260E99FF000674B7 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				71EC21AF2E17FBDC00986DFE /* Font */,
 				AA40BA1E2CD54D5300264B1F /* mirror.css */,
 				AA652A0A260E99FF000674B7 /* markup.html */,
 				AA4EBE942B3747D6006C614B /* markup.js */,
@@ -3207,6 +3224,9 @@
 				AA4EBE952B3747D6006C614B /* markup.js in Resources */,
 				AA408B372616686C00CAE8B9 /* markup.html in Resources */,
 				AA1B81B9262CF16A00891FFB /* markup.css in Resources */,
+				71EC21B32E17FBE800986DFE /* EffraMedium.ttf in Resources */,
+				71EC21B42E17FBE800986DFE /* EffraBold.ttf in Resources */,
+				71EC21B52E17FBE800986DFE /* EffraRegular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
