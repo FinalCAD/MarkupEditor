@@ -24,7 +24,10 @@ let package = Package(
             dependencies: [],
             path: "MarkupEditor",
             exclude: ["rollup"],
-            resources: [.process("Resources")]),
+            resources: [
+                .copy("Resources/Font"),
+                .process("Resources/Html")
+            ]),
         .testTarget(
             name: "BasicTests",
             dependencies: ["MarkupEditor"],
