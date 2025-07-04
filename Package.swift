@@ -24,14 +24,11 @@ let package = Package(
             dependencies: [],
             path: "MarkupEditor",
             exclude: ["rollup"],
-            resources: [.process("Resources")]),
+            resources: [.copy("Resources")]),
         .testTarget(
             name: "BasicTests",
             dependencies: ["MarkupEditor"],
             path: "MarkupEditorTests/BasicTests"),
     ],
-    swiftLanguageVersions: [.v5],
-    resources: [
-        .copy("Resources"),
-    ]
+    swiftLanguageVersions: [.v5]
 )
