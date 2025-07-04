@@ -30,5 +30,8 @@ let package = Package(
             dependencies: ["MarkupEditor"],
             path: "MarkupEditorTests/BasicTests"),
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: [.v5],
+    resources: [
+        .copy("Resources"),
+    ]
 )
