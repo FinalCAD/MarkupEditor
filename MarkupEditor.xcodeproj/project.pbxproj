@@ -11,6 +11,9 @@
 		71EC21B32E17FBE800986DFE /* EffraMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B12E17FBE800986DFE /* EffraMedium.ttf */; };
 		71EC21B42E17FBE800986DFE /* EffraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B02E17FBE800986DFE /* EffraBold.ttf */; };
 		71EC21B52E17FBE800986DFE /* EffraRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B22E17FBE800986DFE /* EffraRegular.ttf */; };
+		71EC21B62E18013400986DFE /* EffraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B02E17FBE800986DFE /* EffraBold.ttf */; };
+		71EC21B72E18013400986DFE /* EffraMedium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B12E17FBE800986DFE /* EffraMedium.ttf */; };
+		71EC21B82E18013400986DFE /* EffraRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71EC21B22E17FBE800986DFE /* EffraRegular.ttf */; };
 		AA0DDC5928A1810D0081B869 /* MarkupEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */; };
 		AA0DDC5B28A1C3620081B869 /* ToolbarStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */; };
 		AA0DDC6228AAF4FF0081B869 /* MarkupToolbarUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */; };
@@ -3234,6 +3237,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				71EC21B62E18013400986DFE /* EffraBold.ttf in Resources */,
+				71EC21B72E18013400986DFE /* EffraMedium.ttf in Resources */,
+				71EC21B82E18013400986DFE /* EffraRegular.ttf in Resources */,
 				AA65294C260E8114000674B7 /* Preview Assets.xcassets in Resources */,
 				AA4EBE912B34FA3C006C614B /* demoDivs.css in Resources */,
 				AA2EB1802B534BC900224F5E /* custom.css in Resources */,
