@@ -19904,9 +19904,13 @@
   function toggleSuperscript() {
       _toggleFormat('SUP');
   }
-  function triggerEmptyTransaction() {
-      view.dispatch(view.state.tr.setMeta('force-placeholder', true));
-  }
+    function triggerEmptyTransaction() {
+      if (window.view && window.view.state) {
+        view.dispatch(view.state.tr.setMeta('force-placeholder', true));
+      } else {
+        console.warn("Editor view not ready in triggerEmptyTransaction");
+      }
+    }
 
   function setColor(color, backgroundColor) {
       const markType = view.state.schema.marks.span;

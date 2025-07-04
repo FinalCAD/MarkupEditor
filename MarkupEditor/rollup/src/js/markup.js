@@ -1694,7 +1694,11 @@ export function toggleSuperscript() {
 };
 
 export function triggerEmptyTransaction() {
-    view.dispatch(view.state.tr.setMeta('force-placeholder', true))
+  if (window.view && window.view.state) {
+    view.dispatch(view.state.tr.setMeta('force-placeholder', true));
+  } else {
+    console.warn("Editor view not ready in triggerEmptyTransaction");
+  }
 }
 
 export function setColor(color, backgroundColor) {
