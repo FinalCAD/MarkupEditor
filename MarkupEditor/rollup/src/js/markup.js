@@ -1693,6 +1693,10 @@ export function toggleSuperscript() {
     _toggleFormat('SUP');
 };
 
+export function triggerEmptyTransaction() {
+    view.dispatch(view.state.tr.setMeta('force-placeholder', true))
+}
+
 export function setColor(color, backgroundColor) {
     const markType = view.state.schema.marks.span;
 

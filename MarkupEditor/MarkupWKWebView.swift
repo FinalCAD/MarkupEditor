@@ -1190,6 +1190,17 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
+    @objc public func emptyTransaction() {
+        triggerEmptyTransaction(handler: nil)
+    }
+    
+    public func triggerEmptyTransaction(handler: (()->Void)? = nil) {
+        evaluateJavaScript("MU.triggerEmptyTransaction()") { result, error in
+            print("triggerEmptyTransaction : \(result) \(error)")
+            handler?()
+        }
+    }
+    
     @objc public func setColor(foregroundColor: String? = nil, backgroundColor: String? = nil) {
         color(foregroundColor: foregroundColor, backgroundColor: backgroundColor, handler: nil)
     }

@@ -75,6 +75,7 @@ import {
   addHeader,
   deleteTableArea,
   borderTable,
+  triggerEmptyTransaction,
 } from "./markup.js"
 
 /**
@@ -144,6 +145,7 @@ export {
   addHeader,
   deleteTableArea,
   borderTable,
+  triggerEmptyTransaction,
 }
 
 const muSchema = new Schema({

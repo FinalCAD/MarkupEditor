@@ -19904,6 +19904,10 @@
   function toggleSuperscript() {
       _toggleFormat('SUP');
   }
+  function triggerEmptyTransaction() {
+      view.dispatch(view.state.tr.setMeta('force-placeholder', true));
+  }
+
   function setColor(color, backgroundColor) {
       const markType = view.state.schema.marks.span;
 
@@ -22370,6 +22374,7 @@
   exports.toggleSubscript = toggleSubscript;
   exports.toggleSuperscript = toggleSuperscript;
   exports.toggleUnderline = toggleUnderline;
+  exports.triggerEmptyTransaction = triggerEmptyTransaction;
   exports.undoCommand = undoCommand;
 
 }));
