@@ -24,7 +24,7 @@ let package = Package(
             dependencies: [],
             path: "MarkupEditor",
             exclude: ["rollup"],
-            resources: [.copy("Resources")]),
+            resources: [.process("Resources")]),
         .testTarget(
             name: "BasicTests",
             dependencies: ["MarkupEditor"],
