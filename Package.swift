@@ -22,7 +22,7 @@ let package = Package(
         .target(
             name: "MarkupEditor",
             dependencies: [],
-            path: "MarkupEditor",
+            path: "MarkupEditor/MarkupEditor",
             exclude: ["rollup"],
             resources: [.copy("Resources")]),
         .testTarget(
