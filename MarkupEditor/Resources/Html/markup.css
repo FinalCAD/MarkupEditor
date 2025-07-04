@@ -16,7 +16,7 @@
 
 @font-face {
     font-family: 'EffraRegular';
-    src: url('Font/EffraRegular.ttf') format('truetype');
+    src: url('../Font/EffraRegular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 }
