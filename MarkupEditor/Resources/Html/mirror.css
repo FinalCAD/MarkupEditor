@@ -318,13 +318,13 @@ img.ProseMirror-separator {
 
 @font-face {
     font-family: 'EffraRegular';
-    src: url('Font/EffraRegular.ttf') format('truetype');
+    src: url('Font/EffraRegular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
 }
 
-.ProseMirror,
-.ProseMirror * {
+body, .ProseMirror, .ProseMirror * {
     font-family: 'EffraRegular', -apple-system !important;
 }
 
