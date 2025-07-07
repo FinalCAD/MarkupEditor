@@ -176,7 +176,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
         backgroundColor = selectionState?.backgroundColor
         foregroundColor = selectionState?.foregroundColor
         textAlign = selectionState?.textAlign ?? "left"
-        cursorY = selectionState?.cursorY
+        cursorY = selectionState?.cursorY ?? 0
     }
     
     func formatString() -> String {
