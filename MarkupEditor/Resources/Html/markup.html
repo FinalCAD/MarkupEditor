@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-        <meta name="supported-color-schemes" content="light dark">
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" type="text/css" href="mirror.css">
-        <link rel="stylesheet" type="text/css" href="markup.css">
-    </head>
-    
-    <body>
-        <div id="editor"></div>
-        <script src="markup.js"></script>
-    </body>
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="supported-color-schemes" content="light dark">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="mirror.css">
+    <link rel="stylesheet" type="text/css" href="markup.css">
+    <style>
+        /* Hide body while waiting for font to load */
+        body {
+            visibility: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor"></div>
+
+    <script src="markup.js"></script>
+    <script>
+        // After fonts are loaded, show body
+        document.fonts.ready.then(() => {
+            document.body.style.visibility = 'visible';
+        });
+    </script>
+</body>
 </html>
