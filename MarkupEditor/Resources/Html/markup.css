@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'EffraRegular';
+    src: url('./Font/EffraRegular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 #editor, .editor {
     background: white;
     color: black;
@@ -7,6 +15,7 @@
     padding-block: 0 var(--padBottom);
     overflow-x: clip;
 }
+
 @media (prefers-color-scheme: dark) {
   #editor, .editor {
     background: black;
@@ -287,4 +296,8 @@ li[style*="text-align"] {
 .inline-code {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+body, .ProseMirror, .ProseMirror * {
+    font-family: 'EffraRegular', -apple-system !important;
 }
