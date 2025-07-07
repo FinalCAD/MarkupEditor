@@ -2626,7 +2626,7 @@ const _getSelectionState = function() {
     state['textAlign'] = textAlign;
     
     const cursorPos = getCursorPosition();
-    state['cursorPos'] = cursorPos;
+    state['cursorY'] = cursorPos.y;
     
     return state;
 };

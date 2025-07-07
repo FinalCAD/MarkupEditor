@@ -52,7 +52,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
     @Published public var code: Bool = false
     @Published public var textAlign: String = "left"
     
-    @Published public var cursorPos: CGRect? = nil
+    @Published public var cursorY: Double = 0
     
     // Colors
     @Published public var foregroundColor: String? = nil
@@ -134,7 +134,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
           foregroundColor: \(foregroundColor ?? "none")
           backgroundColor: \(backgroundColor ?? "none")
           textAlign: \(textAlign)
-          cursorPos: \(String(describing: cursorPos))
+          cursorY: \(cursorY)
         """ : "invalid, divid: \(divid ?? "none")"
     }
     
@@ -176,7 +176,7 @@ public class SelectionState: ObservableObject, Identifiable, CustomStringConvert
         backgroundColor = selectionState?.backgroundColor
         foregroundColor = selectionState?.foregroundColor
         textAlign = selectionState?.textAlign ?? "left"
-        cursorPos = selectionState?.cursorPos
+        cursorY = selectionState?.cursorY
     }
     
     func formatString() -> String {
