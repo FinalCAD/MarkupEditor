@@ -2534,6 +2534,34 @@ export function getSelectionState() {
     return JSON.stringify(state);
 };
 
+export function getCursorPosition() {
+      const { from, to, empty } = view.state.selection;
+
+      const fromCoords = view.coordsAtPos(from);
+
+      if (empty) {
+        return {
+          x: fromCoords.left,
+          y: fromCoords.top + window.scrollY,
+          width: fromCoords.right - fromCoords.left,
+          height: fromCoords.bottom - fromCoords.top
+        };
+      } else {
+        const toCoords = view.coordsAtPos(to);
+        const top = Math.min(fromCoords.top, toCoords.top);
+        const bottom = Math.max(fromCoords.bottom, toCoords.bottom);
+        const left = Math.min(fromCoords.left, toCoords.left);
+        const right = Math.max(fromCoords.right, toCoords.right);
+
+        return {
+          x: left,
+          y: top + window.scrollY,
+          width: right - left,
+          height: bottom - top
+        };
+      }
+    }
+
 /**
  * Populate a dictionary of properties about the current selection and return it.
  *
@@ -2610,6 +2638,9 @@ const _getSelectionState = function() {
     
     const textAlign = getTextAlignment();
     state['textAlign'] = textAlign;
+    
+    const cursorPos = getCursorPosition();
+    state['cursorPos'] = cursorPos;
     
     return state;
 };
