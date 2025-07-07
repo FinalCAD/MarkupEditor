@@ -261,10 +261,8 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     /// part of the package.
     func bundle() -> Bundle {
         #if SWIFT_PACKAGE
-        print("✅ Using Bundle.module")
         return Bundle.module
         #else
-        print("📦 Using Bundle(for: MarkupWKWebView.self)")
         return Bundle(for: MarkupWKWebView.self)
         #endif
     }
