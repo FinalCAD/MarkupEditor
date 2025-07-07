@@ -267,6 +267,19 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         #endif
     }
     
+    @objc public func printBundleRootContents() {
+            let bundleURL = bundle().bundleURL
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(atPath: bundleURL.path)
+                print("Bundle contents:")
+                for item in contents {
+                    print(" - \(item)")
+                }
+            } catch {
+                print("Error reading bundle contents: \(error)")
+            }
+        }
+    
     /// Return the url for the named resource, always using the one in Bundle.main first if it exists.
     ///
     /// Users can package their own markup.html, css, and js to replace the ones that are used by
