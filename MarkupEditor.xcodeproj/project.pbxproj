@@ -18,6 +18,8 @@
 		7162EB022E1814B200B182C4 /* markup.js in Resources */ = {isa = PBXBuildFile; fileRef = 7162EAF92E1814B200B182C4 /* markup.js */; };
 		71D156592E1BC94B00AD5A60 /* EffraRegular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 71D156582E1BC94B00AD5A60 /* EffraRegular.woff2 */; };
 		71D1565A2E1BC94B00AD5A60 /* EffraRegular.woff2 in Resources */ = {isa = PBXBuildFile; fileRef = 71D156582E1BC94B00AD5A60 /* EffraRegular.woff2 */; };
+		71D1565C2E1BD77F00AD5A60 /* EffraRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71D1565B2E1BD77F00AD5A60 /* EffraRegular.ttf */; };
+		71D1565D2E1BD77F00AD5A60 /* EffraRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 71D1565B2E1BD77F00AD5A60 /* EffraRegular.ttf */; };
 		AA0DDC5928A1810D0081B869 /* MarkupEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */; };
 		AA0DDC5B28A1C3620081B869 /* ToolbarStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */; };
 		AA0DDC6228AAF4FF0081B869 /* MarkupToolbarUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */; };
@@ -171,6 +173,7 @@
 		71AE45542E0A8EFF002C363B /* underlineColor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = underlineColor.js; sourceTree = "<group>"; };
 		71AE45562E0AD199002C363B /* autoLink.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = autoLink.js; sourceTree = "<group>"; };
 		71D156582E1BC94B00AD5A60 /* EffraRegular.woff2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EffraRegular.woff2; sourceTree = "<group>"; };
+		71D1565B2E1BD77F00AD5A60 /* EffraRegular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = EffraRegular.ttf; sourceTree = "<group>"; };
 		AA0DDC5828A1810D0081B869 /* MarkupEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupEditor.swift; sourceTree = "<group>"; };
 		AA0DDC5A28A1C3620081B869 /* ToolbarStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarStyle.swift; sourceTree = "<group>"; };
 		AA0DDC5E28A83F4A0081B869 /* MarkupToolbarUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkupToolbarUIView.swift; sourceTree = "<group>"; };
@@ -867,6 +870,7 @@
 		71EC21AF2E17FBDC00986DFE /* Font */ = {
 			isa = PBXGroup;
 			children = (
+				71D1565B2E1BD77F00AD5A60 /* EffraRegular.ttf */,
 				71D156582E1BC94B00AD5A60 /* EffraRegular.woff2 */,
 			);
 			path = Font;
@@ -3229,6 +3233,7 @@
 			files = (
 				7162EAFB2E1814B200B182C4 /* mirror.css in Resources */,
 				7162EAFC2E1814B200B182C4 /* markup.html in Resources */,
+				71D1565C2E1BD77F00AD5A60 /* EffraRegular.ttf in Resources */,
 				7162EAFD2E1814B200B182C4 /* markup.css in Resources */,
 				71D1565A2E1BC94B00AD5A60 /* EffraRegular.woff2 in Resources */,
 				7162EAFE2E1814B200B182C4 /* markup.js in Resources */,
@@ -3250,6 +3255,7 @@
 				7162EB002E1814B200B182C4 /* markup.html in Resources */,
 				7162EB012E1814B200B182C4 /* markup.css in Resources */,
 				7162EB022E1814B200B182C4 /* markup.js in Resources */,
+				71D1565D2E1BD77F00AD5A60 /* EffraRegular.ttf in Resources */,
 				AA652949260E8114000674B7 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
