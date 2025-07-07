@@ -252,33 +252,6 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
-    @objc public func getHtmlFileURL() -> URL? {
-
-        if let url = url(forResource: "markup", withExtension: "html", subdirectory: nil) {
-            print("✅ Found markup.html (no subdir): \(url)")
-            return url
-        } else {
-            print("❌ Not found (no subdir)")
-        }
-        
-        if let urls = bundle().urls(forResourcesWithExtension: "html", subdirectory: "Html") {
-            for url in urls {
-                print("Found html: \(url)")
-            }
-        } else {
-            print("No HTML files found in subdirectory")
-        }
-
-        
-        return url(forResource: "markup", withExtension: "html", subdirectory: "Html")
-    }
-
-    @objc public func getResourcesFolderURL() -> URL? {
-        guard let htmlURL = getHtmlFileURL() else { return nil }
-        // INFO return Resources folder, we can't access it directly because of .process in Package.swift
-        return htmlURL.deletingLastPathComponent().deletingLastPathComponent()
-    }
-    
     /// Return the bundle that is appropriate for the packaging.
     ///
     /// If you use the framework as a dependency, the bundle can be identified from
@@ -307,7 +280,7 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
 //        return Bundle.main.url(forResource: name, withExtension: ext) ?? url
 //    }
 
-    func url(forResource name: String, withExtension ext: String?, subdirectory: String? = nil) -> URL? {
+    @objc public func url(forResource name: String, withExtension ext: String?, subdirectory: String? = nil) -> URL? {
         if let appURL = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: subdirectory) {
             return appURL
         }
