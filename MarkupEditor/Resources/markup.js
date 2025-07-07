@@ -20713,32 +20713,18 @@
   }
     
     function getCursorPosition() {
-          const { from, to, empty } = view.state.selection;
+      const selection = view.state.selection;
+      const coords = view.coordsAtPos(selection.from);
 
-          const fromCoords = view.coordsAtPos(from);
+      const rect = {
+        x: coords.left,
+        y: coords.top,
+        width: coords.right - coords.left,
+        height: coords.bottom - coords.top
+      };
 
-          if (empty) {
-            return {
-              x: fromCoords.left,
-              y: fromCoords.top + window.scrollY,
-              width: fromCoords.right - fromCoords.left,
-              height: fromCoords.bottom - fromCoords.top
-            };
-          } else {
-            const toCoords = view.coordsAtPos(to);
-            const top = Math.min(fromCoords.top, toCoords.top);
-            const bottom = Math.max(fromCoords.bottom, toCoords.bottom);
-            const left = Math.min(fromCoords.left, toCoords.left);
-            const right = Math.max(fromCoords.right, toCoords.right);
-
-            return {
-              x: left,
-              y: top + window.scrollY,
-              width: right - left,
-              height: bottom - top
-            };
-          }
-        }
+      return rect;
+    }
     
   /**
    * Populate a dictionary of properties about the current selection and return it.
