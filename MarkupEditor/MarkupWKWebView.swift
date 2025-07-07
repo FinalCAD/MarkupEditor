@@ -253,6 +253,23 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     }
     
     @objc public func getHtmlFileURL() -> URL? {
+
+        if let url = url(forResource: "markup", withExtension: "html", subdirectory: nil) {
+            print("✅ Found markup.html (no subdir): \(url)")
+            return url
+        } else {
+            print("❌ Not found (no subdir)")
+        }
+        
+        if let urls = bundle().urls(forResourcesWithExtension: "html", subdirectory: "Html") {
+            for url in urls {
+                print("Found html: \(url)")
+            }
+        } else {
+            print("No HTML files found in subdirectory")
+        }
+
+        
         return url(forResource: "markup", withExtension: "html", subdirectory: "Html")
     }
 
@@ -271,8 +288,10 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     /// part of the package.
     func bundle() -> Bundle {
         #if SWIFT_PACKAGE
+        print("✅ Using Bundle.module")
         return Bundle.module
         #else
+        print("📦 Using Bundle(for: MarkupWKWebView.self)")
         return Bundle(for: MarkupWKWebView.self)
         #endif
     }
