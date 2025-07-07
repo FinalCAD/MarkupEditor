@@ -252,6 +252,16 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         }
     }
     
+    @objc public func getHtmlFileURL() -> URL? {
+        return url(forResource: "markup", withExtension: "html", subdirectory: "Html")
+    }
+
+    @objc public func getResourcesFolderURL() -> URL? {
+        guard let htmlURL = getHtmlFileURL() else { return nil }
+        // INFO return Resources folder, we can't access it directly because of .process in Package.swift
+        return htmlURL.deletingLastPathComponent().deletingLastPathComponent()
+    }
+    
     /// Return the bundle that is appropriate for the packaging.
     ///
     /// If you use the framework as a dependency, the bundle can be identified from
@@ -271,9 +281,18 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
     ///
     /// Users can package their own markup.html, css, and js to replace the ones that are used by
     /// default in the MarkupEditor.
-    func url(forResource name: String, withExtension ext: String?) -> URL? {
-        let url = bundle().url(forResource: name, withExtension: ext)
-        return Bundle.main.url(forResource: name, withExtension: ext) ?? url
+    
+//    // Old version
+//    func url(forResource name: String, withExtension ext: String?) -> URL? {
+//        let url = bundle().url(forResource: name, withExtension: ext)
+//        return Bundle.main.url(forResource: name, withExtension: ext) ?? url
+//    }
+
+    func url(forResource name: String, withExtension ext: String?, subdirectory: String? = nil) -> URL? {
+        if let appURL = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: subdirectory) {
+            return appURL
+        }
+        return bundle().url(forResource: name, withExtension: ext, subdirectory: subdirectory)
     }
     
     /// Initialize the directory at cacheUrl with a clean copy of the root resource files.
