@@ -1346,6 +1346,8 @@ public class MarkupWKWebView: WKWebView, ObservableObject {
         } else {
             selectionState.textAlign = "left"
         }
+        
+        selectionState.cursorY = stateDictionary["cursorY"] as? Double ?? 0
 
         return selectionState
     }

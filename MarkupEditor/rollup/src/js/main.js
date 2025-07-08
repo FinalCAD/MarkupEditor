@@ -76,6 +76,7 @@ import {
   deleteTableArea,
   borderTable,
   triggerEmptyTransaction,
+  getCursorPosition,
 } from "./markup.js"
 
 /**
@@ -146,6 +147,7 @@ export {
   deleteTableArea,
   borderTable,
   triggerEmptyTransaction,
+  getCursorPosition,
 }
 
 const muSchema = new Schema({
