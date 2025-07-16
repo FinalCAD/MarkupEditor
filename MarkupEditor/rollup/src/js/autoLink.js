@@ -34,11 +34,15 @@ export function applyAutoLink(view) {
     if (!node.isText || !node.text) return;
 
     const text = node.text;
-    let shouldRemoveExistingLink = true;
 
-    for (const { regex, getHref } of textLinkPatterns) {
+    const hasLink = node.marks.some(mark => mark.type === linkMark);
+    if (hasLink) {
+      tr.removeMark(pos, pos + text.length, linkMark);
+      modified = true;
+    }
+
+    textLinkPatterns.forEach(({ regex, getHref }) => {
       regex.lastIndex = 0;
-
       let match;
       while ((match = regex.exec(text)) !== null) {
         const fullMatch = match[0];
@@ -48,25 +52,10 @@ export function applyAutoLink(view) {
         const to = pos + end;
         const href = getHref(fullMatch);
 
-        const marksInRange = state.doc.rangeHasMark(from, to, linkMark);
-
-        if (!marksInRange) {
-          tr.addMark(from, to, linkMark.create({ href }));
-          modified = true;
-        }
-
-        shouldRemoveExistingLink = false;
+        tr.addMark(from, to, linkMark.create({ href }));
+        modified = true;
       }
-    }
-
-    if (shouldRemoveExistingLink) {
-      node.marks.forEach(mark => {
-        if (mark.type === linkMark) {
-          tr.removeMark(pos, pos + text.length, linkMark);
-          modified = true;
-        }
-      });
-    }
+    });
   });
 
   if (modified) {
