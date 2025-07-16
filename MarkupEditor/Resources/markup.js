@@ -18282,11 +18282,7 @@
       if (!node.isText || !node.text) return;
 
       const text = node.text;
-
-      if (node.marks.some(mark => mark.type === linkMark)) {
-        tr.removeMark(pos, pos + text.length, linkMark);
-        modified = true;
-      }
+      let shouldRemoveExistingLink = true;
 
       for (const { regex, getHref } of textLinkPatterns) {
         regex.lastIndex = 0;
@@ -18300,17 +18296,24 @@
           const to = pos + end;
           const href = getHref(fullMatch);
 
-          const alreadyHasMark = node.marks.some(mark =>
-            mark.type === linkMark &&
-            mark.attrs.href === href &&
-            start === 0 && end === text.length
-          );
+          const marksInRange = state.doc.rangeHasMark(from, to, linkMark);
 
-          if (!alreadyHasMark) {
+          if (!marksInRange) {
             tr.addMark(from, to, linkMark.create({ href }));
             modified = true;
           }
+
+          shouldRemoveExistingLink = false;
         }
+      }
+
+      if (shouldRemoveExistingLink) {
+        node.marks.forEach(mark => {
+          if (mark.type === linkMark) {
+            tr.removeMark(pos, pos + text.length, linkMark);
+            modified = true;
+          }
+        });
       }
     });
 
