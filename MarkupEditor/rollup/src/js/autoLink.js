@@ -12,11 +12,26 @@ export function applyAutoLink(view) {
   const linkMark = state.schema.marks.link;
   if (!linkMark) return;
 
+  const hasTLD = (text) => {
+    try {
+      let domain = text
+        .replace(/^https?:\/\//i, '')
+        .replace(/^www\./i, '')
+        .split(/[\/?#]/)[0]; // Get only the domain
+      return /\.[a-z]{2,}$/.test(domain);
+    } catch {
+      return false;
+    }
+  };
+
   const textLinkPatterns = [
     {
       type: 'url',
       regex: /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9\-._~%]+(?:\.[a-z]{2,})(?:\/[^\s]*)?\b/gi,
-      getHref: (match) => match.startsWith('http') ? match : `https://${match}`
+      getHref: (match) => {
+        if (!hasTLD(match)) return null;
+        return match.startsWith('http') ? match : `https://${match}`;
+      }
     },
     {
       type: 'email',
@@ -34,11 +49,7 @@ export function applyAutoLink(view) {
     if (!node.isText || !node.text) return;
 
     const text = node.text;
-
-    if (node.marks.some(mark => mark.type === linkMark)) {
-      tr.removeMark(pos, pos + text.length, linkMark);
-      modified = true;
-    }
+    let linkRanges = [];
 
     for (const { regex, getHref } of textLinkPatterns) {
       regex.lastIndex = 0;
@@ -52,22 +63,26 @@ export function applyAutoLink(view) {
         const to = pos + end;
         const href = getHref(fullMatch);
 
-        const alreadyHasMark = node.marks.some(mark =>
-          mark.type === linkMark &&
-          mark.attrs.href === href &&
-          start === 0 && end === text.length
-        );
+        if (!href) continue;
 
-        if (!alreadyHasMark) {
-          tr.addMark(from, to, linkMark.create({ href }));
-          modified = true;
-        }
+        linkRanges.push({ from, to, href });
       }
     }
+
+    // Remove all existing link marks in the text node
+    node.marks.forEach((mark) => {
+      if (mark.type === linkMark) {
+        tr.removeMark(pos, pos + text.length, linkMark);
+        modified = true;
+      }
+    });
+
+    // Add valid links back
+    linkRanges.forEach(({ from, to, href }) => {
+      tr.addMark(from, to, linkMark.create({ href }));
+      modified = true;
+    });
   });
 
-  if (modified) {
-    view.dispatch(tr);
-  }
+  if (modified) view.dispatch(tr);
 }
-
