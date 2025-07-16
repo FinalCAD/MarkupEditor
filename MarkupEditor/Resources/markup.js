@@ -18260,14 +18260,24 @@
       const linkMark = state.schema.marks.link;
       if (!linkMark) return;
 
+      const hasTLD = (text) => {
+        try {
+          let domain = text
+            .replace(/^https?:\/\//i, '')
+            .replace(/^www\./i, '')
+            .split(/[\/?#]/)[0]; // Get only the domain
+          return /\.[a-z]{2,}$/.test(domain);
+        } catch {
+          return false;
+        }
+      };
+
       const textLinkPatterns = [
         {
           type: 'url',
-          regex: /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9\-._~%]+(?:\.[a-z0-9\-._~%]+)+(?:\/[^\s]*)?\b/gi,
+          regex: /\b(?:https?:\/\/)?(?:www\.)?[a-z0-9\-._~%]+(?:\.[a-z]{2,})(?:\/[^\s]*)?\b/gi,
           getHref: (match) => {
-            const domain = match.split('/')[0];
-            // Only accept if there's a final TLD (e.g. .com, .fr, .org)
-            if (!/\.[a-z]{2,}$/.test(domain)) return null;
+            if (!hasTLD(match)) return null;
             return match.startsWith('http') ? match : `https://${match}`;
           }
         },
@@ -18287,10 +18297,11 @@
         if (!node.isText || !node.text) return;
 
         const text = node.text;
-        let keepLink = false;
+        let linkRanges = [];
 
         for (const { regex, getHref } of textLinkPatterns) {
           regex.lastIndex = 0;
+
           let match;
           while ((match = regex.exec(text)) !== null) {
             const fullMatch = match[0];
@@ -18298,33 +18309,32 @@
             const end = start + fullMatch.length;
             const from = pos + start;
             const to = pos + end;
-
             const href = getHref(fullMatch);
+
             if (!href) continue;
 
-            const hasMark = state.doc.rangeHasMark(from, to, linkMark);
-            if (!hasMark) {
-              tr.addMark(from, to, linkMark.create({ href }));
-              modified = true;
-            }
-            keepLink = true;
+            linkRanges.push({ from, to, href });
           }
         }
 
-        if (!keepLink) {
-          node.marks.forEach(mark => {
-            if (mark.type === linkMark) {
-              tr.removeMark(pos, pos + text.length, linkMark);
-              modified = true;
-            }
-          });
-        }
+        // Remove all existing link marks in the text node
+        node.marks.forEach((mark) => {
+          if (mark.type === linkMark) {
+            tr.removeMark(pos, pos + text.length, linkMark);
+            modified = true;
+          }
+        });
+
+        // Add valid links back
+        linkRanges.forEach(({ from, to, href }) => {
+          tr.addMark(from, to, linkMark.create({ href }));
+          modified = true;
+        });
       });
 
-      if (modified) {
-        view.dispatch(tr);
-      }
+      if (modified) view.dispatch(tr);
     }
+
 
   /*
    Edit only from within MarkupEditor/rollup/src. After running "npm run build",
