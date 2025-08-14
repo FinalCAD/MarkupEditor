@@ -14663,6 +14663,7 @@
         strongDOM = ["strong", 0], 
         strikeDOM = ["s", 0],
         subDOM = ["sub", 0],
+        uDOM = ["u", 0],
         supDOM = ["sup", 0];
 
   const underlineMark = {
@@ -14721,12 +14722,12 @@
       toDOM() { return strikeDOM }
     },
 
-  //  u: {
-  //    parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
-  //    toDOM() { return uDOM }
-  //  },
+    u: {
+      parseDOM: [{tag: "u"}, {style: "text-decoration=underline"}],
+      toDOM() { return uDOM }
+    },
       
-      underline: underlineMark,
+    underline: underlineMark,
 
     sub: {
       parseDOM: [{tag: "sub"}, {style: "vertical-align: sub"}],
