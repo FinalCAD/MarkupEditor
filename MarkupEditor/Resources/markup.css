@@ -14,8 +14,13 @@
   }
 }
 
+@font-face {
+    font-family: 'Effra';
+    src: url("Effra-Regular.ttf") format('truetype');
+}
+
 body {
-    font-family: -apple-system;
+    font-family: Effra, -apple-system;
     font: -apple-system-body;
     caret-color: red;   /* Helps with debugging since should not appear */
     color: #848F9D;
@@ -273,7 +278,7 @@ img {
     right: -8px;
 }
 
-.placeholder[placeholder]:before {
+p.placeholder[placeholder]:before {
     content: attr(placeholder);
     position: absolute;
     color: #ccc;
